@@ -23,7 +23,7 @@ OPERATORS = {
         }
 
 def is_operator(v):
-    return op.contains(OPERATORS.keys(), v)
+    return op.contains(list(OPERATORS.keys()), v)
 
 def operator(v):
     return OPERATORS[v]
@@ -72,7 +72,7 @@ def eval_variables(analyses, node):
         else:
             return n
 
-    return map(fn.recursive_apply(F(eval_variables, analyses), _eval), node)
+    return list(map(fn.recursive_apply(F(eval_variables, analyses), _eval), node))
 
 def eval(node):
     """
@@ -92,6 +92,6 @@ def eval(node):
     if isinstance(it.head(node), dict):
         return eval(list(it.tail(node)))
     else:
-        args = map(fn.recursive_apply(eval), it.tail(node))
+        args = list(map(fn.recursive_apply(eval), it.tail(node)))
         f = operator(it.head(node))
-        return apply(f, args)
+        return f(*args)

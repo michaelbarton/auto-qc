@@ -28,4 +28,4 @@ def run(args):
     else:
         f = prn.simple
 
-    print f(status['qc_dict'])
+    print(f(status['qc_dict']))

@@ -1,11 +1,12 @@
 from fn import iters as it
 import funcy as fn
+from functools import reduce
 
 def is_variable(var):
     """
     Is the string a variable reference?
     """
-    return isinstance(var, basestring) and it.head(var) == ':'
+    return isinstance(var, str) and it.head(var) == ':'
 
 def is_variable_path_valid(analysis, path):
     """

@@ -12,4 +12,4 @@ def json(qc_dict):
         del node['variables']
     qc_dict['auto_qc_version'] = ver.__version__
     output = jsn.dumps(qc_dict, indent=4, sort_keys=True)
-    return "\n".join(map(lambda x: x.rstrip(), output.split("\n")))
+    return "\n".join([x.rstrip() for x in output.split("\n")])

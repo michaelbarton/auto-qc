@@ -1,3 +1,4 @@
+from functools import reduce
 def identity(x):
     """
     The identity function.

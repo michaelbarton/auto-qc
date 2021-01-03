@@ -24,7 +24,7 @@ def fail_code_error_message(node):
     return msg.format(funcy.get_in(node, [0, 'name']))
 
 def generator_error_string(f, xs):
-    return st.join(map(f, xs), "\n")
+    return st.join(list(map(f, xs)), "\n")
 
 def check_version_number(threshold, status):
     version =  ver.major_version()

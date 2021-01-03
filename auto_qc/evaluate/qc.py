@@ -9,7 +9,7 @@ def build_qc_dict(destination, thresholds, analysis, status):
     Build a dict QC containing all data about this evaluation.
     """
     f        = funcy.rpartial(build_qc_node, status[analysis])
-    nodes    = map(f, status[thresholds]['thresholds'])
+    nodes    = list(map(f, status[thresholds]['thresholds']))
     failures = funcy.rcompose(
             partial(funcy.remove, does_pass),
             partial(map, fail_code),
@@ -32,7 +32,7 @@ def fail_code(node):
 
 def create_variable_dict(input_node, analysis):
     f = lambda x: (x[1:], var.get_variable_value(analysis, x))
-    return dict(map(f, var.get_variable_names(input_node)))
+    return dict(list(map(f, var.get_variable_names(input_node))))
 
 def does_node_pass(input_node, analysis):
     """

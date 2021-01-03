@@ -1,5 +1,6 @@
 from functools import partial, wraps
 from inspect   import getargspec
+from functools import reduce
 
 def thread_status(functions, status):
 
