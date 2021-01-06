@@ -13,6 +13,7 @@ The following commands are available for building and testing:
   $(HLT)make bootstrap$(NC)   Installs python and ruby dependencies locally
   $(HLT)make test$(NC)        Runs all unit tests defined in the test/
   $(HLT)make feature$(NC)     Runs all feature tests defined in the features/
+  $(HLT)make fmt$(NC)         Runs black cod formatting
   $(HLT)make doc$(NC)         Builds man page and html documentation in doc/
   $(HLT)make build$(NC)       Builds a python package of auto_qc in dist/
 
@@ -63,6 +64,9 @@ man/%: man/%.mkd
 # Unit and Feature tests
 #
 #################################################
+
+fmt:
+	poetry run black auto_qc test bin features
 
 autofeature:
 	@clear && $(feature) || true
