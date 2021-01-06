@@ -42,7 +42,7 @@ def get_all_operators(qc_node):
         else:
             operator = it.head(n)
             rest     = it.tail(n)
-            return [operator] + f(rest)
+            return [operator, *f(rest)]
 
     f = funcy.partial(map, fn.recursive_apply(_walk_node, fn.empty_list))
 

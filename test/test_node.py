@@ -1,5 +1,5 @@
 from nose.tools import *
-import auto_qc.node as node
+from auto_qc import node
 
 def test_eval_greater_than_with_two_literals():
     n = ['greater_than', 2, 1]

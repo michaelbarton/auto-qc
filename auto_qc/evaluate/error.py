@@ -1,13 +1,10 @@
-import fn.iters as it
 import string   as st
-from fn import F, _
 
 import funcy
 
 import auto_qc.version         as ver
 import auto_qc.variable        as var
 import auto_qc.node            as nd
-import auto_qc.util.functional as fn
 
 
 def variable_error_message(variable):
@@ -24,7 +21,7 @@ def fail_code_error_message(node):
     return msg.format(funcy.get_in(node, [0, 'name']))
 
 def generator_error_string(f, xs):
-    return st.join(list(map(f, xs)), "\n")
+    return "\n".join([f(x) for x in xs])
 
 def check_version_number(threshold, status):
     version =  ver.major_version()
@@ -60,7 +57,7 @@ def check_operators(node_ref, status):
     message in the status if not.
     """
     operators = funcy.mapcat(nd.get_all_operators, status[node_ref]['thresholds'])
-    errors    = funcy.remove(nd.is_operator, operators)
+    errors    = list(funcy.remove(nd.is_operator, operators))
 
     if len(errors) > 0:
         status['error'] = generator_error_string(operator_error_message, errors)
@@ -72,7 +69,7 @@ def check_failure_codes(node_ref, status):
     """
     Checks all QC entries have defined failure codes
     """
-    errors = funcy.remove(lambda x: 'fail_code' in x[0], status[node_ref]['thresholds'])
+    errors = list(funcy.remove(lambda x: 'fail_code' in x[0], status[node_ref]['thresholds']))
     if len(errors) > 0:
         status['error'] = generator_error_string(fail_code_error_message, errors)
     return status
