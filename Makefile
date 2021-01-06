@@ -88,7 +88,7 @@ test:
 
 # Commands for running tests and features
 feature = tox -e feature $(FLAGS)
-test    = clear && tox -e unit
+test    = clear && poetry run nosetests --rednose
 
 #################################################
 #

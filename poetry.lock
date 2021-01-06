@@ -1,0 +1,170 @@
+[[package]]
+name = "behave"
+version = "1.2.0"
+description = "behave is behaviour-driven development, Python style"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+parse = ">=1.3.3"
+
+[[package]]
+name = "behave-command-line"
+version = "0.0.1"
+description = "Functions for command line cucumber testing with behave"
+category = "main"
+optional = false
+python-versions = "*"
+develop = false
+
+[package.dependencies]
+behave = "1.2"
+nose = "1.3"
+scripttest = "1.3"
+
+[package.source]
+type = "git"
+url = "ssh://git@github.com/JGI-Bioinformatics/behave-command-line.git"
+reference = "add-additional-tests"
+resolved_reference = "21796adae8f8fec2530a737173ef4a63bca5f933"
+
+[[package]]
+name = "colorama"
+version = "0.4.4"
+description = "Cross-platform colored terminal text."
+category = "dev"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+
+[[package]]
+name = "fn"
+version = "0.4.3"
+description = "Implementation of missing features to enjoy functional programming in Python"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
+name = "funcy"
+version = "1.15"
+description = "A fancy and practical functional tools"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
+name = "nose"
+version = "1.3.0"
+description = "nose extends unittest to make testing easier"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
+name = "parse"
+version = "1.18.0"
+description = "parse() is the opposite of format()"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
+name = "python-termstyle"
+version = "0.1.10"
+description = "console colouring for python"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
+name = "pyyaml"
+version = "5.3.1"
+description = "YAML parser and emitter for Python"
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+
+[[package]]
+name = "rednose"
+version = "1.3.0"
+description = "coloured output for nosetests"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+colorama = "*"
+termstyle = ">=0.1.7"
+
+[[package]]
+name = "scripttest"
+version = "1.3"
+description = "Helper to test command-line scripts"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
+name = "termstyle"
+version = "0.1.11"
+description = "console colouring for python"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[metadata]
+lock-version = "1.1"
+python-versions = "^3.8"
+content-hash = "58793f0fcedab5f6d1aaa23ecc435648e97e6f9bb0909a84fbbc7e6273ba8817"
+
+[metadata.files]
+behave = [
+    {file = "behave-1.2.0.tar.gz", hash = "sha256:625710efb8730ce72b3d204d7584f5bcac6b4b31270c8b952c21301198b953bc"},
+]
+behave-command-line = []
+colorama = [
+    {file = "colorama-0.4.4-py2.py3-none-any.whl", hash = "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"},
+    {file = "colorama-0.4.4.tar.gz", hash = "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b"},
+]
+fn = [
+    {file = "fn-0.4.3.tar.gz", hash = "sha256:f8cd80cdabf15367a2f07e7a9951fdc013d7200412743d85b88f2c896c95bada"},
+]
+funcy = [
+    {file = "funcy-1.15-py2.py3-none-any.whl", hash = "sha256:c247c3d085e03a89974e0c9e8331e9a79db3768a263556ba896d6c92d665bba2"},
+    {file = "funcy-1.15.tar.gz", hash = "sha256:65b746fed572b392d886810a98d56939c6e0d545abb750527a717c21ced21008"},
+]
+nose = [
+    {file = "nose-1.3.0.tar.gz", hash = "sha256:4e63cc3325de75cf98ffad40be72fa69753de824695173178f74c034fe4f5260"},
+]
+parse = [
+    {file = "parse-1.18.0.tar.gz", hash = "sha256:91666032d6723dc5905248417ef0dc9e4c51df9526aaeef271eacad6491f06a4"},
+]
+python-termstyle = [
+    {file = "python-termstyle-0.1.10.tar.gz", hash = "sha256:f42a6bb16fbfc5e2c66d553e7ad46524ea833872f75ee5d827c15115fafc94e2"},
+    {file = "python-termstyle-0.1.10.tgz", hash = "sha256:6faf42ba42f2826c38cf70dacb3ac51f248a418e48afc0e36593df11cf3ab1d2"},
+]
+pyyaml = [
+    {file = "PyYAML-5.3.1-cp27-cp27m-win32.whl", hash = "sha256:74809a57b329d6cc0fdccee6318f44b9b8649961fa73144a98735b0aaf029f1f"},
+    {file = "PyYAML-5.3.1-cp27-cp27m-win_amd64.whl", hash = "sha256:240097ff019d7c70a4922b6869d8a86407758333f02203e0fc6ff79c5dcede76"},
+    {file = "PyYAML-5.3.1-cp35-cp35m-win32.whl", hash = "sha256:4f4b913ca1a7319b33cfb1369e91e50354d6f07a135f3b901aca02aa95940bd2"},
+    {file = "PyYAML-5.3.1-cp35-cp35m-win_amd64.whl", hash = "sha256:cc8955cfbfc7a115fa81d85284ee61147059a753344bc51098f3ccd69b0d7e0c"},
+    {file = "PyYAML-5.3.1-cp36-cp36m-win32.whl", hash = "sha256:7739fc0fa8205b3ee8808aea45e968bc90082c10aef6ea95e855e10abf4a37b2"},
+    {file = "PyYAML-5.3.1-cp36-cp36m-win_amd64.whl", hash = "sha256:69f00dca373f240f842b2931fb2c7e14ddbacd1397d57157a9b005a6a9942648"},
+    {file = "PyYAML-5.3.1-cp37-cp37m-win32.whl", hash = "sha256:d13155f591e6fcc1ec3b30685d50bf0711574e2c0dfffd7644babf8b5102ca1a"},
+    {file = "PyYAML-5.3.1-cp37-cp37m-win_amd64.whl", hash = "sha256:73f099454b799e05e5ab51423c7bcf361c58d3206fa7b0d555426b1f4d9a3eaf"},
+    {file = "PyYAML-5.3.1-cp38-cp38-win32.whl", hash = "sha256:06a0d7ba600ce0b2d2fe2e78453a470b5a6e000a985dd4a4e54e436cc36b0e97"},
+    {file = "PyYAML-5.3.1-cp38-cp38-win_amd64.whl", hash = "sha256:95f71d2af0ff4227885f7a6605c37fd53d3a106fcab511b8860ecca9fcf400ee"},
+    {file = "PyYAML-5.3.1-cp39-cp39-win32.whl", hash = "sha256:ad9c67312c84def58f3c04504727ca879cb0013b2517c85a9a253f0cb6380c0a"},
+    {file = "PyYAML-5.3.1-cp39-cp39-win_amd64.whl", hash = "sha256:6034f55dab5fea9e53f436aa68fa3ace2634918e8b5994d82f3621c04ff5ed2e"},
+    {file = "PyYAML-5.3.1.tar.gz", hash = "sha256:b8eac752c5e14d3eca0e6dd9199cd627518cb5ec06add0de9d32baeee6fe645d"},
+]
+rednose = [
+    {file = "rednose-1.3.0.tar.gz", hash = "sha256:6da77917788be277b70259edc0bb92fc6f28fe268b765b4ea88206cc3543a3e1"},
+]
+scripttest = [
+    {file = "scripttest-1.3.tar.gz", hash = "sha256:951cfc25219b0cd003493a565f2e621fd791beaae9f9a3bdd7024d8626419c38"},
+]
+termstyle = [
+    {file = "termstyle-0.1.11.tar.gz", hash = "sha256:ef74b83698ea014112040cf32b1a093c1ab3d91c4dd18ecc03ec178fd99c9f9f"},
+]
