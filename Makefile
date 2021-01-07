@@ -91,7 +91,7 @@ test:
 	@$(test)
 
 # Commands for running tests and features
-feature = tox -e feature $(FLAGS)
+feature = poetry run behave --stop --no-skipped
 test    = clear && poetry run nosetests --rednose
 
 #################################################
