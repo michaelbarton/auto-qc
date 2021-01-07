@@ -1,9 +1,8 @@
-import behave as bh
-import behave_command_line.assertions as asrt
+import behave
 import json as json
 
 
-@bh.then("the JSON-format standard {stream} should equal")
+@behave.then("the JSON-format standard {stream} should equal")
 def step_impl(context, stream):
     def refmt(t):
         return json.dumps(json.loads(t), indent=4, sort_keys=True)
