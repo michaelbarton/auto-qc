@@ -16,7 +16,7 @@ Feature: Using the auto-qc tool
      """
      metadata:
        version:
-         auto-qc: 2.0.0
+         auto-qc: 3.0.0
      thresholds:
      -
        - name: example test
@@ -82,7 +82,7 @@ Feature: Using the auto-qc tool
      """
      metadata:
        version:
-         auto-qc: 2.0.0
+         auto-qc: 3.0.0
      thresholds:
      -
        - name: example test
@@ -120,7 +120,7 @@ Feature: Using the auto-qc tool
      """
      metadata:
        version:
-         auto-qc: 2.0.0
+         auto-qc: 3.0.0
      thresholds:
      - - name: example test 1
          fail_msg: fails
@@ -169,7 +169,7 @@ Feature: Using the auto-qc tool
      """
      metadata:
        version:
-         auto-qc: 2.0.0
+         auto-qc: 3.0.0
      thresholds:
      -
        - name: example test 1

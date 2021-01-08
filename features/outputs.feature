@@ -13,7 +13,7 @@ Feature: Printing different output formats
      """
      metadata:
        version:
-         auto-qc: 2.0.0
+         auto-qc: 3.0.0
      thresholds:
      - - name: example test
          fail_msg: fails
@@ -34,7 +34,7 @@ Feature: Printing different output formats
     And the JSON-format standard out should equal:
       """
       {
-          "auto_qc_version": "2.0.0",
+          "auto_qc_version": "3.0.0",
           "fail_codes": <code>,
           "pass": <pass>,
           "qc": [

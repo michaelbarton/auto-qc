@@ -6,7 +6,7 @@ def test_check_version_number():
     def version(v):
         return {"threshold": {"metadata": {"version": {"auto-qc": v}}}}
 
-    status = er.check_version_number("threshold", version("2.0.0"))
+    status = er.check_version_number("threshold", version("3.0.0"))
     assert_not_in("error", status)
 
     status = er.check_version_number("threshold", version(2.0))

@@ -57,7 +57,7 @@ Feature: Error messages for incorrect use of auto-qc
     And the standard error should contain:
       """
       Incompatible threshold file syntax: <version>.
-      Please update the syntax to version >= 2.0.0.
+      Please update the syntax to version >= 3.0.0.
 
       """
 
@@ -80,7 +80,7 @@ Feature: Error messages for incorrect use of auto-qc
      """
      metadata:
        version:
-         auto-qc: 2.0.0
+         auto-qc: 3.0.0
      thresholds:
      -
        - <operator>
@@ -116,7 +116,7 @@ Feature: Error messages for incorrect use of auto-qc
      """
      metadata:
        version:
-         auto-qc: 2.0.0
+         auto-qc: 3.0.0
      thresholds:
      - - name: example test
          fail_msg: fails

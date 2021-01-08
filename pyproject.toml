@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "auto-qc"
-version = "2.0.0"
+version = "3.0.0"
 description = 'Run high-throughput automated quality control using configuration files.'
 authors = ["Michael Barton <mail@michaelbarton.me.uk>"]
 license = "BSD-3-Clause"
