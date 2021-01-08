@@ -1,4 +1,3 @@
 include VERSION
 include man/auto-qc.1
 recursive-exclude test *
-include requirements/default.txt

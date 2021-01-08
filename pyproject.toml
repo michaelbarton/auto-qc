@@ -7,6 +7,7 @@ license = "BSD-3-Clause"
 readme = "README.md"
 repository = "https://github.com/JGI-Bioinformatics/auto-qc"
 include = ["assets/*"]
+exclude = ["test", "feature"]
 
 [tool.poetry.scripts]
 auto-qc = "bin/auto-qc"
