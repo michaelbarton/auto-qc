@@ -1,4 +1,23 @@
+# auto-qc
+
+## Building and Testing
+
 Type `make` for list of available commands for building and testing
+
+## Versioning
+
+This project uses bump2version to manage the version numbers. This project aims
+to adhere to [Semantic Versioning](http://semver.org/) as much as possible. The
+project version history is described in the CHANGELOG. Version strings can be
+updated with the shell as follows:
+
+```console
+poetry run bump2version patch  # 3.0.0 → 3.0.1
+poetry run bump2version minor  # 3.0.1 → 3.1.0
+poetry run bump2version major  # 3.1.0 → 4.0.0
+```
+
+## Licence
 
 auto-qc Copyright (c) 2017, The Regents of the University of California,
 through Lawrence Berkeley National Laboratory (subject to receipt of any
