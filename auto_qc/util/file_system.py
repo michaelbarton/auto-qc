@@ -1,5 +1,7 @@
 from auto_qc.util.workflow import validate_status_key
+from os import makedirs
 from os import path
+import yaml
 
 
 @validate_status_key("file_")
@@ -14,7 +16,6 @@ def check_for_file(file_, status):
 
 @validate_status_key("path")
 def create_directory(path, status):
-    from os import makedirs
 
     makedirs(status[path])
     return status
@@ -56,10 +57,9 @@ def read_yaml_file(file_, destination, status):
     """
     Reads and parses the yaml file contents into the given key
     """
-    import yaml
 
     s = read_file_contents(file_, destination, status)
-    s[destination] = yaml.load(s[destination])
+    s[destination] = yaml.safe_load(s[destination])
     return status
 
 

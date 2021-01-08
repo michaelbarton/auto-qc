@@ -15,9 +15,7 @@ def build_qc_dict(destination, thresholds, analysis, status):
     )(nodes)
 
     qc_dict = {
-        "pass": len(failures) == 0,
-        # Testing empty list as true/false is pythonic.
-        # What is considered pythonic appears subjective and abitrary to me.
+        "pass": not list(failures),
         "fail_codes": failures,
         "evaluation": nodes,
     }
