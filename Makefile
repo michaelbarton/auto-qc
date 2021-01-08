@@ -1,4 +1,4 @@
-version := $(shell python setup.py --version)
+version = 2.0.0
 name    := auto_qc
 
 HLT=\033[0;34m
@@ -34,16 +34,13 @@ dist    := dist/$(name)-$(version).tar.gz
 
 objs = \
        $(shell find auto_qc) \
-       requirements/default.txt \
-       setup.py \
        MANIFEST.in \
-       man/auto-qc.1 \
-       tox.ini
+       man/auto-qc.1
 
 build: $(dist)
 
 $(dist): $(objs)
-	tox -e build
+	poetry build
 
 clean:
 	rm -f dist/*
@@ -100,7 +97,7 @@ test    = clear && poetry run nosetests --rednose
 #
 #################################################
 
-bootstrap: Gemfile.lock .tox
+bootstrap: Gemfile.lock
 
 Gemfile.lock: Gemfile
 	mkdir -p log

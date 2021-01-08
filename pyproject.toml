@@ -3,6 +3,13 @@ name = "auto-qc"
 version = "2.0.0"
 description = 'Run high-throughput automated quality control using configuration files.'
 authors = ["Michael Barton <mail@michaelbarton.me.uk>"]
+license = "BSD-3-Clause"
+readme = "README.md"
+repository = "https://github.com/JGI-Bioinformatics/auto-qc"
+include = ["assets/*"]
+
+[tool.poetry.scripts]
+auto-qc = "bin/auto-qc"
 
 [tool.poetry.dependencies]
 python = "^3.8"
