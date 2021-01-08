@@ -102,10 +102,6 @@ test    = clear && poetry run nosetests --rednose
 
 bootstrap: Gemfile.lock .tox
 
-.tox: requirements/default.txt requirements/development.txt
-	tox --notest
-	@touch $@
-
 Gemfile.lock: Gemfile
 	mkdir -p log
 	bundle install --path vendor/ruby 2>&1 > log/gem.txt
