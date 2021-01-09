@@ -2,6 +2,9 @@ name: CI
 
 on: [push]
 
+env:
+  TERM: xterm
+
 jobs:
 
   test:
