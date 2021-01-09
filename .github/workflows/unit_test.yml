@@ -20,9 +20,9 @@ jobs:
         with:
           python-version: 3.7
 
-      - name: Python Poetry Action
+      - name: Set up Poetry
         uses: abatilo/actions-poetry@v2.1.0
 
-      - name: Unit test
+      - name: Run unit tests
         run: make test
 
