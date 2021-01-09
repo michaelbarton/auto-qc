@@ -23,6 +23,9 @@ jobs:
       - name: Set up Poetry
         uses: abatilo/actions-poetry@v2.1.0
 
+      - name: Install dependencies
+        run: make bootstrap
+
       - name: Run feature tests
         run: make feature
 

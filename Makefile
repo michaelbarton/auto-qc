@@ -97,7 +97,8 @@ test    = clear && poetry run nosetests --rednose
 #
 #################################################
 
-bootstrap: Gemfile.lock
+bootstrap:
+	poetry install
 
 Gemfile.lock: Gemfile
 	mkdir -p log
