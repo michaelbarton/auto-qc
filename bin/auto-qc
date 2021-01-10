@@ -4,5 +4,6 @@ import os, sys, pkg_resources
 path = os.path.abspath(pkg_resources.resource_filename(__name__, '..'))
 sys.path.insert(1, path)
 
+# This import has to come after the paths are setup above
 from auto_qc import main
-run(cli)
+main.cli()
