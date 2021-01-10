@@ -65,6 +65,9 @@ man/%: man/%.mkd
 fmt:
 	poetry run black auto_qc test bin features
 
+fmt_check:
+	poetry run black --check auto_qc test bin features
+
 autofeature:
 	@clear && $(feature) || true
 	@fswatch \
