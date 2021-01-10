@@ -1,4 +1,4 @@
-name: Feature tests
+name: Unit and feature tests
 
 on: [push]
 
@@ -26,6 +26,8 @@ jobs:
       - name: Install dependencies
         run: make bootstrap
 
+      - name: Run unit tests
+        run: make test
+
       - name: Run feature tests
         run: make feature
-
