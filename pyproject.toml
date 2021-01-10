@@ -10,7 +10,7 @@ include = ["assets/*"]
 exclude = ["test", "feature"]
 
 [tool.poetry.scripts]
-auto-qc = "bin/auto-qc"
+paths = "bin/auto-qc"
 
 [tool.poetry.dependencies]
 python = "^3.6"
