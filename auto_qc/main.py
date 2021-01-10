@@ -1,3 +1,6 @@
+import os, sys, pkg_resources
+import argparse
+
 import auto_qc.util.file_system as fs
 import auto_qc.util.workflow as flow
 import auto_qc.printers as prn
@@ -29,3 +32,16 @@ def run(args):
         f = prn.simple
 
     print(f(status["qc_dict"]))
+
+
+def cli() -> :
+    parser = argparse.ArgumentParser(
+               description='Calculates if sample passes based on QC thresholds')
+    parser.add_argument('--analysis-file',  '-a', dest='analysis_file',  required=True)
+    parser.add_argument('--threshold-file', '-t', dest='threshold_file', required=True)
+
+    group = parser.add_mutually_exclusive_group(required=False)
+    group.add_argument('--json-output', '-j', dest='json', action='store_true')
+
+    args = vars(parser.parse_args())
+    run(args)
