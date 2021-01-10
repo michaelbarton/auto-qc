@@ -3,6 +3,9 @@ name: Super-Linter
 # Run this workflow every time a new commit pushed to your repository
 on: push
 
+env:
+  PYTHON_BLACK_CONFIG_FILE: pyproject.toml
+
 jobs:
   # Set the job key. The key is displayed as the job name
   # when a job name is not provided
