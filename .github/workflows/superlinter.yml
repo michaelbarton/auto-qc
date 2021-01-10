@@ -4,7 +4,7 @@ name: Super-Linter
 on: push
 
 env:
-  PYTHON_BLACK_CONFIG_FILE: pyproject.toml
+  PYTHON_BLACK_CONFIG_FILE: ${GITHUB_WORKSPACE}/pyproject.toml
 
 jobs:
   # Set the job key. The key is displayed as the job name
