@@ -26,6 +26,9 @@ jobs:
       - name: Install dependencies
         run: make bootstrap
 
+      - name: Check code formatting
+        run: make fmt_check
+
       - name: Run unit tests
         run: make test
 

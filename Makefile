@@ -79,7 +79,7 @@ autofeature:
 feature:
 	@$(feature)
 
-autotest:
+autotest: fmt
 	@clear && $(test) || true
 	@fswatch \
 		--exclude 'pyc' \
@@ -87,7 +87,7 @@ autotest:
 		--one-per-batch ./test \
 		| xargs -n 1 -I {} bash -c "$(test)"
 
-test:
+test: fmt
 	@$(test)
 
 # Commands for running tests and features
