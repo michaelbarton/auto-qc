@@ -19,7 +19,7 @@ PyYAML = "^5.3.1"
 funcy = "^1.15"
 fn = "^0.4.3"
 pytest = "^6.2.1"
-dataclasses = { version = "0.8", python = ">=3.6,<3.7" }
+dataclasses = { version = "^0.8", python = ">=3.6,<3.7" }
 
 
 [tool.poetry.dev-dependencies]
