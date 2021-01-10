@@ -30,7 +30,7 @@ Scenario: The given thresholds file does not exist
   And the exit code should be 1
 
 Scenario Outline: Incompatible threshold file version number
- Given I create the file "analysis.yml" with the contents:
+  Given I create the file "analysis.yml" with the contents:
    """
    metadata:
    data:
@@ -62,11 +62,11 @@ Scenario Outline: Incompatible threshold file version number
     """
 
 Examples: Versions
-    | version |
-    | 0       |
-    | 0.1     |
-    | 0.1.2   |
-    | 1.0.0   |
+  | version |
+  | 0       |
+  | 0.1     |
+  | 0.1.2   |
+  | 1.0.0   |
 
 Scenario Outline: The given value does not exist
   Given I create the file "analysis.yml" with the contents:
@@ -103,7 +103,6 @@ Examples: Errors
   | operator     | variable            | error                                           |
   | greater_than | :metric_1/non_value | No matching metric ':metric_1/non_value' found. |
   | unknown      | :metric_1/val       | Unknown operator 'unknown.'                     |
-
 
 Scenario: A QC entry is missing a failure code
   Given I create the file "analysis.yml" with the contents:

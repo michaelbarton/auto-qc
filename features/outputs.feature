@@ -29,7 +29,7 @@ Scenario Outline: Generating JSON formatted output
      | --analysis-file  | analysis.yml  |
      | --threshold-file | threshold.yml |
      | --json-output    |               |
- Then the standard error should be empty
+  Then the standard error should be empty
   And the exit code should be 0
   And the JSON-format standard out should equal:
     """
@@ -51,6 +51,6 @@ Scenario Outline: Generating JSON formatted output
     """
 
 Examples: Outputs
-    | literal | pass   | msg    | code         |
-    | 0       | true   | passes | []           |
-    | 2       | false  | fails  | ["ERR00001"] |
+  | literal | pass   | msg    | code         |
+  | 0       | true   | passes | []           |
+  | 2       | false  | fails  | ["ERR00001"] |
