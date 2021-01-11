@@ -1,5 +1,6 @@
-import argparse
 
+from rich import console
+from rich import markdown
 import click
 
 from auto_qc import printers
@@ -38,8 +39,15 @@ def run(args):
 @click.command()
 @click.option("--analysis-file", "-a", help="Path to analysis YAML/JSON.", type=click.Path())
 @click.option("--threshold-file", "-t", help="Path to threshold YAML/JSON.", type=click.Path())
-@click.option("--json-output", "-j", help="Create JSON output of quality control.", is_flag=True)
+@click.option("--json-output", "-j", help="Create JSON output of quality control.", is_flag=True, default=True)
+@click.option("--manual", "-m", help="Display the manual for auto-qc.", is_flag=True, default=False)
 def cli(analysis_file: str, threshold_file: str, json_output: bool, manual: bool) -> None:
+
+    if manual:
+        md = markdown.Markdown(MARKDOWN)
+        console.Console().print(md)
+        exit(0)
+
     if not analysis_file:
         print("Missing required flag: --analysis-file / -a")
         exit(1)
