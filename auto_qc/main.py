@@ -1,5 +1,7 @@
 import argparse
 
+import click
+
 from auto_qc import printers
 from auto_qc.evaluate import error
 from auto_qc.evaluate import qc
@@ -25,7 +27,7 @@ def run(args):
 
     workflow.exit_if_error(status)
 
-    if args["json"]:
+    if args["json_output"]:
         f = printers.json
     else:
         f = printers.simple
@@ -33,15 +35,23 @@ def run(args):
     print(f(status["qc_dict"]))
 
 
-def cli() -> None:
-    parser = argparse.ArgumentParser(
-        description="Calculates if sample passes based on QC thresholds"
+@click.command()
+@click.option("--analysis-file", "-a", help="Path to analysis YAML/JSON.", type=click.Path())
+@click.option("--threshold-file", "-t", help="Path to threshold YAML/JSON.", type=click.Path())
+@click.option("--json-output", "-j", help="Create JSON output of quality control.", is_flag=True)
+def cli(analysis_file: str, threshold_file: str, json_output: bool, manual: bool) -> None:
+    if not analysis_file:
+        print("Missing required flag: --analysis-file / -a")
+        exit(1)
+
+    if not threshold_file:
+        print("Missing required flag: --threshold-file / -t")
+        exit(1)
+
+    run(
+        {
+            "analysis_file": analysis_file,
+            "threshold_file": threshold_file,
+            "json_output": json_output,
+        }
     )
-    parser.add_argument("--analysis-file", "-a", dest="analysis_file", required=True)
-    parser.add_argument("--threshold-file", "-t", dest="threshold_file", required=True)
-
-    group = parser.add_mutually_exclusive_group(required=False)
-    group.add_argument("--json-output", "-j", dest="json", action="store_true")
-
-    args = vars(parser.parse_args())
-    run(args)
