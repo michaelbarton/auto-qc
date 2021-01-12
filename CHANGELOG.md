@@ -6,6 +6,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## 3.0.0 - Unreleased
 
   * Update code from python 2.7 => 3.7.
+  * Add a flag `--manual / -m` which when given displays the `MANUAL.md` file.
+    This replaces trying to install a man page, which is hard to do reliably.
 
 ## 2.0.0 - 2018-02-21
 

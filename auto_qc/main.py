@@ -1,8 +1,10 @@
+from importlib import resources
 
 from rich import console
 from rich import markdown
 import click
 
+import auto_qc
 from auto_qc import printers
 from auto_qc.evaluate import error
 from auto_qc.evaluate import qc
@@ -44,8 +46,9 @@ def run(args):
 def cli(analysis_file: str, threshold_file: str, json_output: bool, manual: bool) -> None:
 
     if manual:
-        md = markdown.Markdown(MARKDOWN)
-        console.Console().print(md)
+        with resources.path(auto_qc.__name__, 'MANUAL.md') as manual_path:
+            manual = markdown.Markdown(manual_path.read_text())
+            console.Console(width=100).print(manual)
         exit(0)
 
     if not analysis_file:

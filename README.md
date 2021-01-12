@@ -1,5 +1,9 @@
 # auto-qc
 
+## Example
+
+For more documentation see `MANUAL.md`
+
 ## Building and Testing
 
 Type `make` for list of available commands for building and testing

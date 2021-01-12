@@ -1,5 +1,4 @@
-auto-qc(1) -- A command line tool for automated quality control
-==============================================================
+# auto-qc(1) -- A command line tool for automated quality control
 
 ## SYNOPSIS
 
@@ -43,7 +42,7 @@ are however not permitted.
 
 An example analysis file is given below.
 
-~~~ YAML
+``` YAML
 ---
 metadata:
   auto-qc:
@@ -59,7 +58,7 @@ data:
     contaminants: 9280
     initial: 10000000
     non_contaminants: 9990720
-~~~
+```
 
 ### THRESHOLD FILE
 
@@ -117,7 +116,7 @@ An example of a simple threshold file with two QC tests is given below. In this
 example if both QC evaluations return TRUE then this will pass. If either
 return FALSE then this will fail QC.
 
-~~~ YAML
+``` YAML
 metadata:
  version:
    auto-qc: 2.0.0
@@ -130,13 +129,13 @@ thresholds:
   - greater_than
   - :metrics/percent_contamination
   - 2
-~~~
+```
 
 A more complex example uses `NOT` and `AND` to create a QC threshold that
 fails only when both of the nested thresholds fail. Boolean operators can be
 use arbitrarily to create more complex QC tests.
 
-~~~ YAML
+``` YAML
 metadata:
  version:
    auto-qc: 2.0.0
@@ -149,7 +148,7 @@ thresholds:
   - AND
   - - [less_than :metrics/percent_contamination, 2]
     - [less_than, :reads/contaminants, 1e6]
-~~~
+```
 
 ### AVAILABLE OPERATORS
 
@@ -218,7 +217,7 @@ Michael Barton <mail@michaelbarton.me.uk>
 
 ## HISTORY
 
-* 3.0.0 - Mon 08 Jun 2021
+* 3.0.0 - Mon 11 Jan 2021
 * 2.0.0 - Mon 20 Jun 2016
 * 1.1.0 - Mon 27 Apr 2015
 * 1.0.0 - Fri 15 Aug 2014
