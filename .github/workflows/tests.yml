@@ -29,6 +29,9 @@ jobs:
       - name: Check code formatting
         run: make fmt_check
 
+      - name: Test package builds
+        run: make build
+
       - name: Run unit tests
         run: make test
 
