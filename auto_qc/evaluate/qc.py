@@ -1,14 +1,12 @@
-import typing
-
+from auto_qc import types
 from auto_qc import variable
 from auto_qc import node
 import functools
 
-
 import funcy
 
 
-def build_qc_dict(destination, thresholds, analysis, status) -> typing.Dict[str, typing.Any]:
+def evaluate(destination: str, thresholds, analysis, status) -> types.AutoqcEvaluation:
     """
     Build a dict QC containing all data about this evaluation.
     """
@@ -20,13 +18,13 @@ def build_qc_dict(destination, thresholds, analysis, status) -> typing.Dict[str,
         funcy.distinct,
     )(nodes)
 
-    qc_dict = {
-        "pass": not list(failures),
-        "fail_codes": list(failures),
-        "evaluation": nodes,
-    }
+    evaluation = types.AutoqcEvaluation(
+        is_pass=not list(failures),
+        fail_codes=list(failures),
+        evaluation=nodes,
+    )
 
-    status[destination] = qc_dict
+    status[destination] = evaluation
     return status
 
 

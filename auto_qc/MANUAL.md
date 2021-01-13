@@ -46,7 +46,7 @@ An example analysis file is given below.
 ---
 metadata:
   auto-qc:
-    version: 2.0.0
+    version: 3.0.0
 data:
   bases:
     contaminants: 1392000
@@ -119,7 +119,7 @@ return FALSE then this will fail QC.
 ``` YAML
 metadata:
  version:
-   auto-qc: 2.0.0
+   auto-qc: 3.0.0
 thresholds:
 - - name: example test
     pass_msg: No obvious contamination detected.
@@ -138,7 +138,7 @@ use arbitrarily to create more complex QC tests.
 ``` YAML
 metadata:
  version:
-   auto-qc: 2.0.0
+   auto-qc: 3.0.0
 thresholds:
 - - name: example test
     pass_msg: No obvious contamination detected.

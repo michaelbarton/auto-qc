@@ -2,6 +2,8 @@ from functools import partial, wraps
 from inspect import getargspec
 from functools import reduce
 
+from auto_qc import types
+
 
 def thread_status(functions, status):
     def reducer(status, item):
@@ -9,28 +11,12 @@ def thread_status(functions, status):
         args = item[1] if len(item) > 1 else []
 
         if "error" in status:
-            return status
+            raise types.AutoQCEvaluationError(status["error"])
         else:
             parameterised = reduce(partial, args, f)
             return parameterised(status)
 
     return reduce(reducer, functions, status)
-
-
-def exit_if_error(status):
-    if "error" in status:
-        from sys import stderr
-
-        stderr.write(status["error"] + "\n")
-        exit(1)
-
-
-def exit_status(status):
-    """
-    Exit code based on the status
-    """
-    exit_if_error(status)
-    exit(0)
 
 
 def validate_status_key(status_key):

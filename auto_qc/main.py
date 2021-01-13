@@ -1,46 +1,43 @@
+import sys
 from importlib import resources
+import yaml
 
+import typing
 from rich import console
 from rich import markdown
 import click
 
 import auto_qc
-from auto_qc import printers
+from auto_qc import printers, types
 from auto_qc.evaluate import error
 from auto_qc.evaluate import qc
 from auto_qc.util import file_system
 from auto_qc.util import workflow
 
 
-method_chain = [
-    (file_system.check_for_file, ["analysis_file"]),
-    (file_system.check_for_file, ["threshold_file"]),
-    (file_system.read_yaml_file, ["threshold_file", "thresholds"]),
-    (file_system.read_yaml_file, ["analysis_file", "analyses"]),
+METHOD_CHAIN = [
     (error.check_version_number, ["thresholds"]),
     (error.check_node_paths, ["thresholds", "analyses"]),
     (error.check_operators, ["thresholds"]),
     (error.check_failure_codes, ["thresholds"]),
-    (qc.build_qc_dict, ["qc_dict", "thresholds", "analyses"]),
+    (qc.evaluate, ["thresholds", "analyses"]),
 ]
 
 
-def run(args):
-    status = workflow.thread_status(method_chain, args)
-
-    workflow.exit_if_error(status)
-
-    if args["json_output"]:
-        f = printers.json
-    else:
-        f = printers.simple
-
-    print(f(status["qc_dict"]))
+def run(
+    thresholds: typing.Dict[str, typing.Any], analysis: typing.Dict[str, typing.Any]
+) -> types.AutoqcEvaluation:
+    status = workflow.thread_status(METHOD_CHAIN, {"thresholds": thresholds, "analysis": analysis})
+    return status["qc_dict"]
 
 
 @click.command()
-@click.option("--analysis-file", "-a", help="Path to analysis YAML/JSON.", type=click.Path())
-@click.option("--threshold-file", "-t", help="Path to threshold YAML/JSON.", type=click.Path())
+@click.option(
+    "--analysis-file", "-a", help="Path to analysis YAML/JSON.", type=click.Path(exists=True)
+)
+@click.option(
+    "--threshold-file", "-t", help="Path to threshold YAML/JSON.", type=click.Path(exists=True)
+)
 @click.option(
     "--json-output",
     "-j",
@@ -65,10 +62,11 @@ def cli(analysis_file: str, threshold_file: str, json_output: bool, manual: bool
         print("Missing required flag: --threshold-file / -t")
         exit(1)
 
-    run(
-        {
-            "analysis_file": analysis_file,
-            "threshold_file": threshold_file,
-            "json_output": json_output,
-        }
-    )
+    try:
+        with open(threshold_file) as threshold, open(analysis_file) as analysis:
+            evaluation = run(yaml.safe_load(threshold), yaml.safe_load(analysis))
+    except types.AutoQCEvaluationError as err:
+        sys.stderr.print(err)
+        sys.exit(1)
+
+    print(evaluation.to_evaluation_string(json_output))

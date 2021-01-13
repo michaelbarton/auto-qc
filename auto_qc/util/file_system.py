@@ -4,16 +4,6 @@ from os import path
 import yaml
 
 
-@validate_status_key("file_")
-def check_for_file(file_, status):
-    """
-    Checks the existence of a given file from the status.
-    """
-    if not path.isfile(status[file_]):
-        status["error"] = "File not found: '{}'.".format(status[file_])
-    return status
-
-
 @validate_status_key("path")
 def create_directory(path, status):
 
