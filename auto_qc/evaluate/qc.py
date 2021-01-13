@@ -15,7 +15,9 @@ def build_qc_dict(destination, thresholds, analysis, status) -> typing.Dict[str,
     f = funcy.rpartial(build_qc_node, status[analysis])
     nodes = list(map(f, status[thresholds]["thresholds"]))
     failures = funcy.rcompose(
-        functools.partial(funcy.remove, does_pass), functools.partial(map, fail_code), funcy.distinct
+        functools.partial(funcy.remove, does_pass),
+        functools.partial(map, fail_code),
+        funcy.distinct,
     )(nodes)
 
     qc_dict = {

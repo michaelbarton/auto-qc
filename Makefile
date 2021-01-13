@@ -24,6 +24,8 @@ export HELP
 help:
 	clear && echo "$$HELP"
 
+all: test feature build
+
 #################################################
 #
 # Build
