@@ -1,22 +1,26 @@
-import auto_qc.variable as var
-import auto_qc.node as node
+import typing
+
+from auto_qc import variable
+from auto_qc import node
+import functools
+
+
 import funcy
-from functools import partial
 
 
-def build_qc_dict(destination, thresholds, analysis, status):
+def build_qc_dict(destination, thresholds, analysis, status) -> typing.Dict[str, typing.Any]:
     """
     Build a dict QC containing all data about this evaluation.
     """
     f = funcy.rpartial(build_qc_node, status[analysis])
     nodes = list(map(f, status[thresholds]["thresholds"]))
     failures = funcy.rcompose(
-        partial(funcy.remove, does_pass), partial(map, fail_code), funcy.distinct
+        functools.partial(funcy.remove, does_pass), functools.partial(map, fail_code), funcy.distinct
     )(nodes)
 
     qc_dict = {
         "pass": not list(failures),
-        "fail_codes": failures,
+        "fail_codes": list(failures),
         "evaluation": nodes,
     }
 
@@ -33,8 +37,8 @@ def fail_code(node):
 
 
 def create_variable_dict(input_node, analysis):
-    f = lambda x: (x[1:], var.get_variable_value(analysis, x))
-    return dict(list(map(f, var.get_variable_names(input_node))))
+    f = lambda x: (x[1:], variable.get_variable_value(analysis, x))
+    return dict(list(map(f, variable.get_variable_names(input_node))))
 
 
 def does_node_pass(input_node, analysis):

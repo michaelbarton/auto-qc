@@ -180,3 +180,14 @@ def step_impl(context, stream):
     else:
         raise RuntimeError('Unknown stream "{}"').format(stream)
     assertions.assert_empty(s)
+
+
+@behave.then("the standard {stream} should not be empty")
+def step_impl(context, stream):
+    if stream == "out":
+        s = context.output.stdout
+    elif stream == "error":
+        s = context.output.stderr
+    else:
+        raise RuntimeError('Unknown stream "{}"').format(stream)
+    assertions.assert_not_empty(s)

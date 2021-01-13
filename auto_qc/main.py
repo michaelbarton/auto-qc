@@ -41,7 +41,7 @@ def run(args):
 @click.command()
 @click.option("--analysis-file", "-a", help="Path to analysis YAML/JSON.", type=click.Path())
 @click.option("--threshold-file", "-t", help="Path to threshold YAML/JSON.", type=click.Path())
-@click.option("--json-output", "-j", help="Create JSON output of quality control.", is_flag=True, default=True)
+@click.option("--json-output", "-j", help="Create JSON output of quality control.", is_flag=True, default=False)
 @click.option("--manual", "-m", help="Display the manual for auto-qc.", is_flag=True, default=False)
 def cli(analysis_file: str, threshold_file: str, json_output: bool, manual: bool) -> None:
 
