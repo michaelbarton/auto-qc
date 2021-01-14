@@ -11,10 +11,9 @@ Scenario: The given analysis file does not exist
      | --threshold-file | thresholds.yml |
   Then the standard error should contain:
     """
-    File not found: 'none'.
-
+    Error: Invalid value for '--analysis-file' / '-a': Path 'none' does not exist
     """
-  And the exit code should be 1
+  And the exit code should be non-zero
 
 Scenario: The given thresholds file does not exist
   Given I create the file "analysis.yml"
@@ -24,10 +23,10 @@ Scenario: The given thresholds file does not exist
      | --threshold-file | none           |
   Then the standard error should contain:
     """
-    File not found: 'none'.
+    Error: Invalid value for '--threshold-file' / '-t': Path 'none' does not exist
 
     """
-  And the exit code should be 1
+  And the exit code should be non-zero
 
 Scenario Outline: Incompatible threshold file version number
   Given I create the file "analysis.yml" with the contents:

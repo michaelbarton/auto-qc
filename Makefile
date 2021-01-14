@@ -14,7 +14,6 @@ The following commands are available for building and testing:
   $(HLT)make test$(NC)        Runs all unit tests defined in the test/
   $(HLT)make feature$(NC)     Runs all feature tests defined in the features/
   $(HLT)make fmt$(NC)         Runs black cod formatting
-  $(HLT)make doc$(NC)         Builds man page and html documentation in doc/
   $(HLT)make build$(NC)       Builds a python package of auto_qc in dist/
 
 
@@ -36,8 +35,7 @@ dist    := dist/$(name)-$(version).tar.gz
 
 objs = \
        $(shell find auto_qc) \
-       MANIFEST.in \
-       man/auto-qc.1
+       MANIFEST.in
 
 build: $(dist)
 
@@ -47,22 +45,13 @@ $(dist): $(objs)
 clean:
 	rm -f dist/*
 
-#################################################
-#
-# Documentation
-#
-#################################################
-
-doc: man/auto-qc.1
-
-man/%: man/%.mkd
-	bundle exec ronn $<
 
 #################################################
 #
 # Unit and Feature tests
 #
 #################################################
+
 
 fmt:
 	poetry run black auto_qc test bin features

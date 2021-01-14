@@ -1,4 +1,4 @@
-from auto_qc import types
+from auto_qc import objects
 from auto_qc import variable
 from auto_qc import node
 import functools
@@ -6,7 +6,7 @@ import functools
 import funcy
 
 
-def evaluate(destination: str, thresholds, analysis, status) -> types.AutoqcEvaluation:
+def evaluate(destination: str, thresholds, analysis, status) -> objects.AutoqcEvaluation:
     """
     Build a dict QC containing all data about this evaluation.
     """
@@ -18,7 +18,7 @@ def evaluate(destination: str, thresholds, analysis, status) -> types.AutoqcEval
         funcy.distinct,
     )(nodes)
 
-    evaluation = types.AutoqcEvaluation(
+    evaluation = objects.AutoqcEvaluation(
         is_pass=not list(failures),
         fail_codes=list(failures),
         evaluation=nodes,

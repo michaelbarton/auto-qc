@@ -1,17 +1,16 @@
-import sys
 from importlib import resources
+import sys
+import typing
 import yaml
 
-import typing
 from rich import console
 from rich import markdown
 import click
 
 import auto_qc
-from auto_qc import printers, types
+from auto_qc import objects
 from auto_qc.evaluate import error
 from auto_qc.evaluate import qc
-from auto_qc.util import file_system
 from auto_qc.util import workflow
 
 
@@ -20,14 +19,14 @@ METHOD_CHAIN = [
     (error.check_node_paths, ["thresholds", "analyses"]),
     (error.check_operators, ["thresholds"]),
     (error.check_failure_codes, ["thresholds"]),
-    (qc.evaluate, ["thresholds", "analyses"]),
+    (qc.evaluate, ["qc_dict", "thresholds", "analyses"]),
 ]
 
 
 def run(
     thresholds: typing.Dict[str, typing.Any], analysis: typing.Dict[str, typing.Any]
-) -> types.AutoqcEvaluation:
-    status = workflow.thread_status(METHOD_CHAIN, {"thresholds": thresholds, "analysis": analysis})
+) -> objects.AutoqcEvaluation:
+    status = workflow.thread_status(METHOD_CHAIN, {"thresholds": thresholds, "analyses": analysis})
     return status["qc_dict"]
 
 
@@ -55,18 +54,18 @@ def cli(analysis_file: str, threshold_file: str, json_output: bool, manual: bool
         exit(0)
 
     if not analysis_file:
-        print("Missing required flag: --analysis-file / -a")
+        sys.stderr.write("Missing required flag: --analysis-file / -a\n")
         exit(1)
 
     if not threshold_file:
-        print("Missing required flag: --threshold-file / -t")
+        sys.stderr.write("Missing required flag: --threshold-file / -t\n")
         exit(1)
 
     try:
         with open(threshold_file) as threshold, open(analysis_file) as analysis:
             evaluation = run(yaml.safe_load(threshold), yaml.safe_load(analysis))
-    except types.AutoQCEvaluationError as err:
-        sys.stderr.print(err)
+    except objects.AutoQCEvaluationError as err:
+        sys.stderr.write(f"{err}\n")
         sys.exit(1)
 
     print(evaluation.to_evaluation_string(json_output))

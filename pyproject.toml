@@ -4,9 +4,9 @@ version = "3.0.0"
 description = 'Run high-throughput automated quality control using configuration files.'
 authors = ["Michael Barton <mail@michaelbarton.me.uk>"]
 license = "BSD-3-Clause"
-readme = "MANUAL.md"
+readme = "auto_qc/MANUAL.md"
 repository = "https://github.com/JGI-Bioinformatics/auto-qc"
-include = ["assets/*", "MANUAL.md", "README.md"]
+include = ["auto_qc/MANUAL.md", "README.md"]
 exclude = ["test", "feature"]
 
 [tool.poetry.scripts]

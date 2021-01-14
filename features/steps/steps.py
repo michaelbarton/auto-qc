@@ -1,5 +1,5 @@
 import os.path
-import string
+import json
 
 import behave
 from nose import tools
@@ -99,6 +99,11 @@ def step_impl(context, stream):
     assertions.assert_diff(context.text, s)
 
 
+@behave.then("The exit code should be non-zero")
+def step_impl(context):
+    tools.assert_not_equal(context.output.returncode, 0)
+
+
 @behave.then("The exit code should be {code}")
 def step_impl(context, code):
     tools.assert_equal(context.output.returncode, int(code))
@@ -191,3 +196,17 @@ def step_impl(context, stream):
     else:
         raise RuntimeError('Unknown stream "{}"').format(stream)
     assertions.assert_not_empty(s)
+
+
+@behave.then("the JSON-format standard {stream} should equal")
+def step_impl(context, stream):
+    def refmt(t):
+        return json.dumps(json.loads(t), indent=4, sort_keys=True)
+
+    if stream == "out":
+        s = context.output.stdout
+    elif stream == "error":
+        s = context.output.stderr
+    else:
+        raise RuntimeError('Unknown stream "{}"'.format(stream))
+    assertions.assert_diff(refmt(context.text), refmt(s))

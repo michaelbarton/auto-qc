@@ -17,7 +17,7 @@ class AutoqcEvaluation:
 
     is_pass: bool
     fail_codes: typing.List[str]
-    evaluation = typing.List[typing.Dict[str, typing.Any]]
+    evaluation: typing.List[typing.Dict[str, typing.Any]]
 
     def to_evaluation_string(self, json_output: bool) -> str:
         """Generate a string representation of the auto-qc evaluation tree.
