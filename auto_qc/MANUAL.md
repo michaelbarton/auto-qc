@@ -6,18 +6,14 @@
 
 ## OPTIONS
 
-  * `-a`, `--analysis-file` <ANALYSIS_FILE>:
+* `-a`, `--analysis-file` <ANALYSIS_FILE>: The path to the file containing
+  input data to be checked for quality.
 
-    The path to the file containing input data to be checked for quality.
+* `-t`, `--threshold-file` <THRESHOLD_FILE>: The path to the file containing
+  the pass/fail thresholds for quality control.
 
-  * `-t`, `--threshold-file` <THRESHOLD_FILE>:
-
-    The path to the file containing the pass/fail thresholds for quality
-    control.
-
-  * `-j`, `--json-output`:
-
-    Generate JSON output describing each of the quality control tests.
+* `-j`, `--json-output`: Generate JSON output describing each of the quality
+  control tests.
 
 ## SYNTAX
 
@@ -66,49 +62,49 @@ The threshold file specifies the QC criteria for pass or fail. This is a YAML
 format dictionary contains two fields `metadata` and `thresholds`. These fields
 are defined as:
 
-  * **metadata** - This contains any metadata that you wish to associate with
-    your threshold file. The field `metadata/version/auto-qc` is mandatory and
-    is checked by auto-qc to determine if the QC threshold syntax matches that
-    of the version of auto-qc according to [semantic versioning][semver].
+* **metadata** - This contains any metadata that you wish to associate with
+  your threshold file. The field `metadata/version/auto-qc` is mandatory and
+  is checked by auto-qc to determine if the QC threshold syntax matches that
+  of the version of auto-qc according to [semantic versioning][semver].
 
-  * **thresholds** - This field should contain an array of
-    [s-expressions][sexp]. Each s-expression is a list defining a single QC
-    threshold. The format of each threshold is:
+* **thresholds** - This field should contain an array of
+  [s-expressions][sexp]. Each s-expression is a list defining a single QC
+  threshold. The format of each threshold is:
 
-    * **metadata dictionary** - A dictionary with metadata fields for the QC
-      threshold. The required fields are: `name`, `fail_msg` and `pass_msg`,
-      with an optional `tags' field. The description of each of these fields
-      are:
+  * **metadata dictionary** - A dictionary with metadata fields for the QC
+    threshold. The required fields are: `name`, `fail_msg` and `pass_msg`,
+    with an optional `tags' field. The description of each of these fields
+    are:
 
-        * **name**: A unique name describing the QC entry
+      * **name**: A unique name describing the QC entry
 
-        * **fail_msg**: The message to return when this entry QC entry fails.
-          Python string interpolation can be used to customise this message
-          with values from the analysis file.
+      * **fail_msg**: The message to return when this entry QC entry fails.
+        Python string interpolation can be used to customise this message
+        with values from the analysis file.
 
-        * **pass_msg**: The message to return when this entry QC entry pass.
-          Python string interpolation may also be used to customise this
-          message with values from the analysis file.
+      * **pass_msg**: The message to return when this entry QC entry pass.
+        Python string interpolation may also be used to customise this
+        message with values from the analysis file.
 
-        * **fail_code**: An ID for the kind of failure identified if this entry
-          does not pass QC. The list of failure codes is returned in the JSON
-          output with the `--json-output` flag.
+      * **fail_code**: An ID for the kind of failure identified if this entry
+        does not pass QC. The list of failure codes is returned in the JSON
+        output with the `--json-output` flag.
 
-        * **tags**: A optional list of tags for the QC entry. These tags are
-          returned in the JSON output and can be used to organise the QC
-          entries.
+      * **tags**: A optional list of tags for the QC entry. These tags are
+        returned in the JSON output and can be used to organise the QC
+        entries.
 
-    * **operator** - An operator to test the QC value. This may be mathematical
-      comparison operators such as 'greater_than' or Boolean operators such as 'AND'. The
-      list of allowed operators is described in the section below.
+  * **operator** - An operator to test the QC value. This may be mathematical
+    comparison operators such as 'greater_than' or Boolean operators such as 'AND'. The
+    list of allowed operators is described in the section below.
 
-    * **analysis value** - The value from the analysis file that should be
-      tested. The colon ':' indicates that this a reference to a value in the
-      analysis file. The remainder of this string shows the path to the value
-      to be tested.
+  * **analysis value** - The value from the analysis file that should be
+    tested. The colon ':' indicates that this a reference to a value in the
+    analysis file. The remainder of this string shows the path to the value
+    to be tested.
 
-    * **literal value** - A literal value that to compare with the reference
-      value.
+  * **literal value** - A literal value that to compare with the reference
+    value.
 
 [sexp]: https://en.wikipedia.org/wiki/S-expression
 
@@ -154,62 +150,74 @@ thresholds:
 
 **equals** / **not_equals** - Test whether two values are equal or not.
 
-    - equals
-    - :run_metadata/protocol
-    - Low Input DNA
+```
+- equals
+- :run_metadata/protocol
+- Low Input DNA
+```
 
 **greater_than** / **less_than** / **greater_equal_than** / **less_equal_than** - Test whether one
 numeric value is greater/smaller than another.
 
-    - greater_than
-    - :human_contamination/metrics/percent_contamination
-    - 5
+```
+- greater_than
+- :human_contamination/metrics/percent_contamination
+- 5
+```
 
 **and** - Test whether two values are both true. The example here illustrates
 that metrics can be nested. For instance here, the two arguments to the **and**
 operator are themselves thresholds.
 
-    - and
-    -
-      - greater_than
-      - :cat_contamination/metrics/percent_contamination
-      - 5
-    -
-      - greater_than
-      - :dog_contamination/metrics/percent_contamination
-      - 5
+```
+- and
+-
+	- greater_than
+	- :cat_contamination/metrics/percent_contamination
+	- 5
+-
+	- greater_than
+	- :dog_contamination/metrics/percent_contamination
+	- 5
+```
 
 **or** - Test whether any values are true.
 
-    - or
-    -
-      - greater_than
-      - :cat_contamination/metrics/percent_contamination
-      - 5
-    -
-      - greater_than
-      - :dog_contamination/metrics/percent_contamination
-      - 5
+```
+- or
+-
+	- greater_than
+	- :cat_contamination/metrics/percent_contamination
+	- 5
+-
+	- greater_than
+	- :dog_contamination/metrics/percent_contamination
+	- 5
+```
 
 **not** - Flips the Boolean value
 
-      - not
-      - :cat_contamination/is_contaminated
+```
+- not
+- :cat_contamination/is_contaminated
+```
 
 **is_in** / **is_not_in** - Test whether a value is in a list of values. Note
 that the list of values must begin with the **list** operator.
 
-    - is_in
-    - :cat_contamination/name_of_cat
-    -
-      - list
-      - "Chase No Face"
-      - "Colonel Meow"
-      - "Felicette"
-      - "Mrs. Chippy"
-      - "Peter, the Lord's Cat"
-      - "Tiddles"
-      - "Wilberforce"
+```
+- is_in
+- :cat_contamination/name_of_cat
+-
+	- list
+	- "Chase No Face"
+	- "Colonel Meow"
+	- "Felicette"
+	- "Mrs. Chippy"
+	- "Peter, the Lord's Cat"
+	- "Tiddles"
+	- "Wilberforce"
+```
 
 ## AUTHOR
 
