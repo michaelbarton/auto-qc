@@ -1,5 +1,5 @@
-import os.path
 import json
+import os.path
 
 import behave
 from nose import tools

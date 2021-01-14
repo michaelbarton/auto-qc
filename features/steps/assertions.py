@@ -1,7 +1,8 @@
+import difflib as dl
 import os
 import types as ty
+
 import nose.tools as nt
-import difflib as dl
 
 
 def assert_file_permission(file_, expected):

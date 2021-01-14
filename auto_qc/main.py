@@ -1,18 +1,15 @@
-from importlib import resources
 import sys
 import typing
-import yaml
+from importlib import resources
 
-from rich import console
-from rich import markdown
 import click
+import yaml
+from rich import console, markdown
 
 import auto_qc
 from auto_qc import objects
-from auto_qc.evaluate import error
-from auto_qc.evaluate import qc
+from auto_qc.evaluate import error, qc
 from auto_qc.util import workflow
-
 
 METHOD_CHAIN = [
     (error.check_version_number, ["thresholds"]),

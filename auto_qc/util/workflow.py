@@ -1,6 +1,5 @@
-from functools import partial, wraps
+from functools import partial, reduce, wraps
 from inspect import getargspec
-from functools import reduce
 
 from auto_qc import objects
 

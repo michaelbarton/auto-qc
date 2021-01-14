@@ -1,6 +1,7 @@
-from fn import iters as it
-import funcy
 from functools import reduce
+
+import funcy
+from fn import iters as it
 
 
 def is_variable(var):

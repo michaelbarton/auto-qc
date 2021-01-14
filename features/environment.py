@@ -1,5 +1,5 @@
-from scripttest import TestFileEnvironment
 from rich import traceback
+from scripttest import TestFileEnvironment
 
 # Generates nice stack traces
 traceback.install()

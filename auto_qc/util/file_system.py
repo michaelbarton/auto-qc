@@ -1,7 +1,8 @@
-from auto_qc.util.workflow import validate_status_key
-from os import makedirs
-from os import path
+from os import makedirs, path
+
 import yaml
+
+from auto_qc.util.workflow import validate_status_key
 
 
 @validate_status_key("path")
@@ -75,8 +76,9 @@ def import_asset(asset_name, destination, status):
 
 @validate_status_key("contents")
 def print_yaml(contents, status):
-    from yaml import dump
     from sys import stdout
+
+    from yaml import dump
 
     stdout.write(dump(status[contents], default_flow_style=False))
     return status

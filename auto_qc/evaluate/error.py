@@ -1,8 +1,6 @@
 import funcy
 
-from auto_qc import version
-from auto_qc import variable
-from auto_qc import node
+from auto_qc import node, variable, version
 
 
 def variable_error_message(variable):

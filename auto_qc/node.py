@@ -1,11 +1,11 @@
 import operator as op
-from fn import iters as it
-from fn import F
 
 import funcy
+from fn import F
+from fn import iters as it
 
-import auto_qc.variable as var
 import auto_qc.util.functional as fn
+import auto_qc.variable as var
 
 OPERATORS = {
     "greater_than": op.gt,

@@ -1,9 +1,8 @@
-from auto_qc import objects
-from auto_qc import variable
-from auto_qc import node
 import functools
 
 import funcy
+
+from auto_qc import node, objects, variable
 
 
 def evaluate(destination: str, thresholds, analysis, status) -> objects.AutoqcEvaluation:

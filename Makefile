@@ -52,6 +52,7 @@ clean:
 
 
 fmt:
+	poetry run isort auto_qc tests features
 	poetry run black auto_qc test bin features
 
 fmt_check:

@@ -1,6 +1,7 @@
-from nose import tools
-from auto_qc.evaluate import qc
 import funcy
+from nose import tools
+
+from auto_qc.evaluate import qc
 
 METADATA = {"name": "Example test", "pass_msg": "passes", "fail_msg": "fails", "fail_code": "ERR01"}
 
