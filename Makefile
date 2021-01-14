@@ -33,9 +33,7 @@ all: test feature build
 
 dist    := dist/$(name)-$(version).tar.gz
 
-objs = \
-       $(shell find auto_qc) \
-       MANIFEST.in
+objs = $(shell find auto_qc -type f ! -name "*.pyc") pyproject.toml
 
 build: $(dist)
 
