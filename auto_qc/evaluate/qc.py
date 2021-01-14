@@ -37,8 +37,14 @@ def fail_code(node):
 
 
 def create_variable_dict(input_node, analysis):
-    f = lambda x: (x[1:], variable.get_variable_value(analysis, x))
-    return dict(list(map(f, variable.get_variable_names(input_node))))
+    return dict(
+        list(
+            map(
+                lambda x: (x[1:], variable.get_variable_value(analysis, x)),
+                variable.get_variable_names(input_node),
+            )
+        )
+    )
 
 
 def does_node_pass(input_node, analysis):

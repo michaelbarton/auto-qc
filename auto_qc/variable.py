@@ -16,7 +16,7 @@ def is_variable_path_valid(analysis, path):
     """
     try:
         get_variable_value(analysis, path)
-    except KeyError as e:
+    except KeyError:
         return False
     return True
 

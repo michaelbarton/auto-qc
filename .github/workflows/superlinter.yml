@@ -4,8 +4,9 @@ name: Super-Linter
 on: push
 
 env:
-  LINTER_RULES_PATH: /
-  PYTHON_BLACK_CONFIG_FILE: pyproject.toml
+  # Black validation happens in the unit tests using the pyproject.toml config
+  VALIDATE_PYTHON_BLACK: false
+  VALIDATE_PYTHON_ISORT: false
 
 jobs:
   # Set the job key. The key is displayed as the job name
