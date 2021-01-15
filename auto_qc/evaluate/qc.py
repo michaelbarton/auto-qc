@@ -1,5 +1,3 @@
-import functools
-
 import funcy
 
 from auto_qc import node, objects, variable
