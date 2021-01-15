@@ -75,18 +75,23 @@ are defined as:
     threshold. The required fields are: `name`, `fail_msg` and `pass_msg`,
     with an optional `tags' field. The description of each of these fields
     are:
-      * **name**: A unique name describing the QC entry
-      * **fail_msg**: The message to return when this entry QC entry fails.
-        Python string interpolation can be used to customise this message with
-        values from the analysis file.
-      * **pass_msg**: The message to return when this entry QC entry pass.
-        Python string interpolation may also be used to customise this message
-        with values from the analysis file.
-      * **fail_code**: An ID for the kind of failure identified if this entry
-        does not pass QC. The list of failure codes is returned in the JSON
-        output with the `--json-output` flag.
-      * **tags**: A optional list of tags for the QC entry. These tags are
-        returned in the JSON output and can be used to organise the QC entries.
+
+    * **name**: A unique name describing the QC entry.
+
+    * **fail_msg**: The message to return when this entry QC entry fails.
+      Python string interpolation can be used to customise this message with
+      values from the analysis file.
+
+    * **pass_msg**: The message to return when this entry QC entry pass.
+      Python string interpolation may also be used to customise this message
+      with values from the analysis file.
+
+    * **fail_code**: An ID for the kind of failure identified if this entry
+      does not pass QC. The list of failure codes is returned in the JSON
+      output with the `--json-output` flag.
+
+    * **tags**: A optional list of tags for the QC entry. These tags are
+      returned in the JSON output and can be used to organise the QC entries.
 
   * **operator** - An operator to test the QC value. This may be mathematical
     comparison operators such as 'greater_than' or Boolean operators such as 'AND'. The

@@ -194,7 +194,7 @@ def stream_should_not_be_empty(context, stream):
     elif stream == "error":
         s = context.output.stderr
     else:
-        raise RuntimeError('Unknown stream "{}"').format(stream)
+        raise RuntimeError(f'Unknown stream "{stream}"')
     assertions.assert_not_empty(s)
 
 
@@ -209,5 +209,5 @@ def json_stream_should_equal(context, stream):
     elif stream == "error":
         s = context.output.stderr
     else:
-        raise RuntimeError('Unknown stream "{}"'.format(stream))
+        raise RuntimeError(f'Unknown stream "{stream}"')
     assertions.assert_string_equal_with_diff(refmt(context.text), refmt(s))
