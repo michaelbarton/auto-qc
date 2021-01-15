@@ -73,7 +73,7 @@ def stream_should_contain_output(context, stream, output):
     elif stream == "error":
         s = context.output.stderr
     else:
-        raise RuntimeError('Unknown stream "{}"'.format(stream))
+        raise RuntimeError(f'Unknown stream "{stream}"')
     tools.assert_in(output, s)
 
 
@@ -84,7 +84,7 @@ def stream_should_contain(context, stream):
     elif stream == "error":
         s = context.output.stderr
     else:
-        raise RuntimeError('Unknown stream "{}"'.format(stream))
+        raise RuntimeError(f'Unknown stream "{stream}"')
     tools.assert_in(context.text.strip(), s)
 
 
@@ -95,7 +95,7 @@ def stream_should_equal(context, stream):
     elif stream == "error":
         s = context.output.stderr
     else:
-        raise RuntimeError('Unknown stream "{}"'.format(stream))
+        raise RuntimeError(f'Unknown stream "{stream}"')
     assertions.assert_string_equal_with_diff(context.text, s)
 
 
@@ -183,7 +183,7 @@ def stream_should_be_empty(context, stream):
     elif stream == "error":
         s = context.output.stderr
     else:
-        raise RuntimeError('Unknown stream "{}"').format(stream)
+        raise RuntimeError(f'Unknown stream "{stream}"')
     assertions.assert_empty(s)
 
 
