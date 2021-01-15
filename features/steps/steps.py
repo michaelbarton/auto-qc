@@ -96,7 +96,7 @@ def stream_should_equal(context, stream):
         s = context.output.stderr
     else:
         raise RuntimeError('Unknown stream "{}"'.format(stream))
-    assertions.assert_diff(context.text, s)
+    assertions.assert_string_equal_with_diff(context.text, s)
 
 
 @behave.then("The exit code should be non-zero")
@@ -141,7 +141,7 @@ def file_should_exist_with_contents(context, target):
         "The file '{}' does not exist.".format(target),
     )
     with open(context.output.files_created[target].full, "r") as f:
-        assertions.assert_diff(context.text, f.read())
+        assertions.assert_string_equal_with_diff(context.text, f.read())
 
 
 @behave.then('the file "{target}" should contain "{contents}"')
@@ -201,6 +201,7 @@ def stream_should_not_be_empty(context, stream):
 @behave.then("the JSON-format standard {stream} should equal")
 def json_stream_should_equal(context, stream):
     def refmt(t):
+        """Reformat a JSON object so they have identical layout"""
         return json.dumps(json.loads(t), indent=4, sort_keys=True)
 
     if stream == "out":
@@ -209,4 +210,4 @@ def json_stream_should_equal(context, stream):
         s = context.output.stderr
     else:
         raise RuntimeError('Unknown stream "{}"'.format(stream))
-    assertions.assert_diff(refmt(context.text), refmt(s))
+    assertions.assert_string_equal_with_diff(refmt(context.text), refmt(s))

@@ -75,24 +75,18 @@ are defined as:
     threshold. The required fields are: `name`, `fail_msg` and `pass_msg`,
     with an optional `tags' field. The description of each of these fields
     are:
-
       * **name**: A unique name describing the QC entry
-
       * **fail_msg**: The message to return when this entry QC entry fails.
-        Python string interpolation can be used to customise this message
-        with values from the analysis file.
-
+        Python string interpolation can be used to customise this message with
+        values from the analysis file.
       * **pass_msg**: The message to return when this entry QC entry pass.
-        Python string interpolation may also be used to customise this
-        message with values from the analysis file.
-
+        Python string interpolation may also be used to customise this message
+        with values from the analysis file.
       * **fail_code**: An ID for the kind of failure identified if this entry
         does not pass QC. The list of failure codes is returned in the JSON
         output with the `--json-output` flag.
-
       * **tags**: A optional list of tags for the QC entry. These tags are
-        returned in the JSON output and can be used to organise the QC
-        entries.
+        returned in the JSON output and can be used to organise the QC entries.
 
   * **operator** - An operator to test the QC value. This may be mathematical
     comparison operators such as 'greater_than' or Boolean operators such as 'AND'. The
@@ -150,7 +144,7 @@ thresholds:
 
 **equals** / **not_equals** - Test whether two values are equal or not.
 
-```
+``` YAML
 - equals
 - :run_metadata/protocol
 - Low Input DNA
@@ -159,7 +153,7 @@ thresholds:
 **greater_than** / **less_than** / **greater_equal_than** / **less_equal_than** - Test whether one
 numeric value is greater/smaller than another.
 
-```
+``` YAML
 - greater_than
 - :human_contamination/metrics/percent_contamination
 - 5
@@ -169,35 +163,35 @@ numeric value is greater/smaller than another.
 that metrics can be nested. For instance here, the two arguments to the **and**
 operator are themselves thresholds.
 
-```
+``` YAML
 - and
 -
-	- greater_than
-	- :cat_contamination/metrics/percent_contamination
-	- 5
+  - greater_than
+  - :cat_contamination/metrics/percent_contamination
+  - 5
 -
-	- greater_than
-	- :dog_contamination/metrics/percent_contamination
-	- 5
+  - greater_than
+  - :dog_contamination/metrics/percent_contamination
+  - 5
 ```
 
 **or** - Test whether any values are true.
 
-```
+``` YAML
 - or
 -
-	- greater_than
-	- :cat_contamination/metrics/percent_contamination
-	- 5
+  - greater_than
+  - :cat_contamination/metrics/percent_contamination
+  - 5
 -
-	- greater_than
-	- :dog_contamination/metrics/percent_contamination
-	- 5
+  - greater_than
+  - :dog_contamination/metrics/percent_contamination
+  - 5
 ```
 
 **not** - Flips the Boolean value
 
-```
+``` YAML
 - not
 - :cat_contamination/is_contaminated
 ```
@@ -205,18 +199,18 @@ operator are themselves thresholds.
 **is_in** / **is_not_in** - Test whether a value is in a list of values. Note
 that the list of values must begin with the **list** operator.
 
-```
+``` YAML
 - is_in
 - :cat_contamination/name_of_cat
 -
-	- list
-	- "Chase No Face"
-	- "Colonel Meow"
-	- "Felicette"
-	- "Mrs. Chippy"
-	- "Peter, the Lord's Cat"
-	- "Tiddles"
-	- "Wilberforce"
+  - list
+  - "Chase No Face"
+  - "Colonel Meow"
+  - "Felicette"
+  - "Mrs. Chippy"
+  - "Peter, the Lord's Cat"
+  - "Tiddles"
+  - "Wilberforce"
 ```
 
 ## AUTHOR

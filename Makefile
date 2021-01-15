@@ -82,7 +82,7 @@ test: fmt
 	@$(test)
 
 # Commands for running tests and features
-feature = poetry run behave --stop --no-skipped
+feature = poetry run behave --stop
 test    = clear && poetry run nosetests --rednose
 
 #################################################
