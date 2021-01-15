@@ -2,6 +2,8 @@ import dataclasses
 import json
 import typing
 
+import funcy
+
 from auto_qc import version
 
 
@@ -34,7 +36,12 @@ class AutoqcEvaluation:
             return "PASS" if self.is_pass else f"FAIL: {', '.join(self.fail_codes)}"
 
         return json.dumps(
-            {"qc": self.evaluation, "auto_qc_version": version.__version__},
+            {
+                "qc": [funcy.omit(x, ["variables"]) for x in self.evaluation],
+                "auto_qc_version": version.__version__,
+                "pass": self.is_pass,
+                "fail_codes": self.fail_codes,
+            },
             indent=4,
             sort_keys=True,
         )
