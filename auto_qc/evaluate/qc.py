@@ -11,28 +11,15 @@ def evaluate(destination: str, thresholds, analysis, status) -> objects.AutoqcEv
     """
     f = funcy.rpartial(build_qc_node, status[analysis])
     nodes = list(map(f, status[thresholds]["thresholds"]))
-    failures = funcy.rcompose(
-        functools.partial(funcy.remove, does_pass),
-        functools.partial(map, fail_code),
-        funcy.distinct,
-    )(nodes)
-
+    failure_codes = {x["fail_code"] for x in nodes if not x["pass"]}
     evaluation = objects.AutoqcEvaluation(
-        is_pass=not list(failures),
-        fail_codes=list(failures),
+        is_pass=not failure_codes,
+        fail_codes=list(failure_codes),
         evaluation=nodes,
     )
 
     status[destination] = evaluation
     return status
-
-
-def does_pass(node):
-    return node["pass"]
-
-
-def fail_code(node):
-    return node["fail_code"]
 
 
 def create_variable_dict(input_node, analysis):
