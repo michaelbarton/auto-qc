@@ -19,9 +19,9 @@
 
 ### ANALYSIS FILE
 
-The analysis file is a YAML dictionary with the keys `metadata` and `data`.
-Both these `metadata` and `data` fields are freeform dictionaries that can
-contain any subdictionary with any fields.
+The data file is a YAML dictionary with the keys `metadata` and `data`. Both
+these `metadata` and `data` fields are freeform dictionaries that can contain
+any subdictionary with any fields.
 
 The `metadata` field contains an additional data that is required to be stored
 about the QC data. The one mandatory field is required under `metadata` is
@@ -36,24 +36,20 @@ The `data` field is used to store all the metrics values used to make the QC
 decision. There is no restriction on the dictionary structure or keys. Arrays
 are however not permitted.
 
-An example analysis file is given below.
+An example data file is given below.
 
 ``` YAML
 ---
-metadata:
-  auto-qc:
-    version: 3.0.0
-data:
-  bases:
-    contaminants: 1392000
-    initial: 1500000000
-    non_contaminants: 1498608000
-  metrics:
-    percent_contamination: 0.1
-  reads:
-    contaminants: 9280
-    initial: 10000000
-    non_contaminants: 9990720
+bases:
+	contaminants: 1392000
+	initial: 1500000000
+	non_contaminants: 1498608000
+metrics:
+	percent_contamination: 0.1
+reads:
+	contaminants: 9280
+	initial: 10000000
+	non_contaminants: 9990720
 ```
 
 ### THRESHOLD FILE

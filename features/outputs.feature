@@ -5,15 +5,11 @@ Feature: Printing different output formats
 Scenario Outline: Generating JSON formatted output
   Given I create the file "analysis.yml" with the contents:
    """
-   metadata:
-   data:
-     value: 2
+   value: 2
    """
   And I create the file "threshold.yml" with the contents:
    """
-   metadata:
-     version:
-       auto-qc: 3.0.0
+   version: 3.0.0
    thresholds:
    - - name: example test
        fail_msg: fails

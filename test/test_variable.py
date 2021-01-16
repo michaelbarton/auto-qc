@@ -5,13 +5,13 @@ from auto_qc import variable
 
 def test_is_variable_path_valid_with_valid_path():
     path = ":ref/metric_1"
-    analysis = {"metadata": {}, "data": {"ref": {"metric_1": 2}}}
+    analysis = {"ref": {"metric_1": 2}}
     tools.assert_true(variable.is_variable_path_valid(analysis, path))
 
 
 def test_is_variable_path_valid_with_invalid_path():
     path = ":unknown/metric_1"
-    analysis = {"metadata": {}, "data": {"ref": {"metric_1": 2}}}
+    analysis = {"ref": {"metric_1": 2}}
     tools.assert_false(variable.is_variable_path_valid(analysis, path))
 
 

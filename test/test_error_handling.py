@@ -5,7 +5,7 @@ from auto_qc.evaluate import error
 
 def test_check_version_number():
     def version(v):
-        return {"threshold": {"metadata": {"version": {"auto-qc": v}}}}
+        return {"threshold": {"version": v}}
 
     status = error.check_version_number("threshold", version("3.0.0"))
     tools.assert_not_in("error", status)
@@ -19,7 +19,7 @@ def test_check_version_number():
 
 def test_check_node_paths_with_valid_node():
     n = [["less_than", ":ref/metric_1", 1]]
-    a = {"metadata": {}, "data": {"ref": {"metric_1": 2}}}
+    a = {"ref": {"metric_1": 2}}
 
     status = {"nodes": {"thresholds": n}, "analyses": a}
     tools.assert_not_in("error", status)
@@ -27,12 +27,12 @@ def test_check_node_paths_with_valid_node():
 
 def test_check_node_paths_with_unknown_path():
     n = [["less_than", ":ref/unknown", 1]]
-    a = {"metadata": {}, "data": {"ref": {"metric_1": 2}}}
+    a = {"ref": {"metric_1": 2}}
 
     status = {"nodes": {"thresholds": n}, "analyses": a}
     result = error.check_node_paths("nodes", "analyses", status)
     tools.assert_in("error", result)
-    tools.assert_equal(result["error"], "No matching metric ':ref/unknown' found.")
+    tools.assert_equal(result["error"], "No matching metric path ':ref/unknown' found in data.")
 
 
 def test_check_operators_with_known_operator():
@@ -77,7 +77,7 @@ def test_check_operators_with_unknown_nested_operator_with_doc_string():
 
 def test_check_node_paths_with_no_failure_code():
     n = [[{"name": "test"}, "less_than", ":metric_1", 1]]
-    a = {"metadata": {}, "data": {"metric_1": 2}}
+    a = {"metric_1": 2}
 
     status = {"nodes": {"thresholds": n}, "analyses": a}
     result = error.check_failure_codes("nodes", status)
@@ -87,7 +87,7 @@ def test_check_node_paths_with_no_failure_code():
 
 def test_check_node_paths_with_failure_code():
     n = [[{"name": "test", "fail_code": "ERR"}, "less_than", ":metric_1", 1]]
-    a = {"metadata": {}, "data": {"metric_1": 2}}
+    a = {"metric_1": 2}
 
     status = {"nodes": {"thresholds": n}, "analyses": a}
     result = error.check_failure_codes("nodes", status)

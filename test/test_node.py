@@ -40,13 +40,13 @@ def test_eval_with_is_not_in():
 
 def test_eval_variable_with_literal_and_variable():
     n = ["less_than", ":ref/metric_1", 1]
-    a = {"metadata": {}, "data": {"ref": {"metric_1": 2}}}
+    a = {"ref": {"metric_1": 2}}
     tools.assert_equal(["less_than", 2, 1], node.eval_variables(a, n))
 
 
 def test_eval_variable_with_nested_list():
     n = ["and", ["less_than", ":ref/metric_1", 1], ["less_than", ":ref/metric_1", 1]]
-    a = {"metadata": {}, "data": {"ref": {"metric_1": 2}}}
+    a = {"ref": {"metric_1": 2}}
 
     tools.assert_equal(["and", ["less_than", 2, 1], ["less_than", 2, 1]], node.eval_variables(a, n))
 

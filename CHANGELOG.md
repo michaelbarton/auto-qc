@@ -11,6 +11,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 * Add a flag `--manual / -m` which when given displays the `MANUAL.md` file.
   This replaces trying to install a man page on the user's system, which is
   hard to do reliably.
+* Simplify the format of the `data` file: removed required metadata fields. Now
+  is just a plain JSON / YAML file.
+* Simplify the format of the `thresholds` file. Path to `auto-qc` version
+  changed from `metadata.auto_qc.version` => `version`.
 
 ## 2.0.0 - 2018-02-21
 

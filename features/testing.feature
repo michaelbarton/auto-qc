@@ -6,17 +6,13 @@ Feature: Using the auto-qc tool
 Scenario Outline: Using different comparison operators
   Given I create the file "analysis.yml" with the contents:
    """
-   metadata:
-   data:
-     object_1:
-       metric_1:
-         value: <variable>
+   object_1:
+     metric_1:
+       value: <variable>
    """
   And I create the file "threshold.yml" with the contents:
    """
-   metadata:
-     version:
-       auto-qc: 3.0.0
+   version: 3.0.0
    thresholds:
    -
      - name: example test
@@ -71,17 +67,13 @@ Examples: Operators
 Scenario: Using the unary not operator
   Given I create the file "analysis.yml" with the contents:
    """
-   metadata:
-   data:
-     object_1:
-       metric_1:
-         value: true
+   object_1:
+     metric_1:
+       value: true
    """
   And I create the file "threshold.yml" with the contents:
    """
-   metadata:
-     version:
-       auto-qc: 3.0.0
+   version: 3.0.0
    thresholds:
    -
      - name: example test
@@ -106,20 +98,16 @@ Scenario: Using the unary not operator
 Scenario Outline: Testing multiple different thresholds
   Given I create the file "analysis.yml" with the contents:
    """
-   metadata:
-   data:
-     object_1:
-       metric_1:
-         value: <var_1>
-     object_2:
-       metric_2:
-         value: <var_2>
+   object_1:
+     metric_1:
+       value: <var_1>
+   object_2:
+     metric_2:
+       value: <var_2>
    """
   And I create the file "threshold.yml" with the contents:
    """
-   metadata:
-     version:
-       auto-qc: 3.0.0
+   version: 3.0.0
    thresholds:
    - - name: example test 1
        fail_msg: fails
@@ -137,9 +125,9 @@ Scenario Outline: Testing multiple different thresholds
      - <lit_2>
    """
   When I run the command "../bin/auto-qc" with the arguments:
-     | key              | value         |
-     | --data           | analysis.yml  |
-     | --thresholds     | threshold.yml |
+    | key              | value         |
+    | --data           | analysis.yml  |
+    | --thresholds     | threshold.yml |
   Then the standard error should be empty
   And the exit code should be 0
   And the standard out should contain:
@@ -158,17 +146,13 @@ Examples: Operators
 Scenario Outline: Using nested thresholds
   Given I create the file "analysis.yml" with the contents:
    """
-   metadata:
-   data:
-     object_1:
-       metric_1:
-         value: <var_1>
+   object_1:
+     metric_1:
+       value: <var_1>
    """
   And I create the file "threshold.yml" with the contents:
    """
-   metadata:
-     version:
-       auto-qc: 3.0.0
+   version: 3.0.0
    thresholds:
    -
      - name: example test 1
@@ -184,9 +168,9 @@ Scenario Outline: Using nested thresholds
        - <lit_2>
    """
   When I run the command "../bin/auto-qc" with the arguments:
-     | key              | value         |
-     | --data           | analysis.yml  |
-     | --thresholds     | threshold.yml |
+    | key              | value         |
+    | --data           | analysis.yml  |
+    | --thresholds     | threshold.yml |
   Then the standard error should be empty
   And the exit code should be 0
   And the standard out should contain:

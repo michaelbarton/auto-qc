@@ -21,7 +21,7 @@ def test_build_passing_qc_node_with_two_literals():
 
 def test_build_failing_qc_node_with_literal_and_variable():
     n = [METADATA, "less_than", ":ref/metric_1", 1]
-    a = {"metadata": {}, "data": {"ref": {"metric_1": 2}}}
+    a = {"ref": {"metric_1": 2}}
     expected = {
         "variables": {"ref/metric_1": 2},
         "name": "Example test",
@@ -36,6 +36,6 @@ def test_build_failing_qc_node_with_literal_and_variable():
 def test_build_passing_qc_node_with_interpolated_msg():
     metadata = funcy.merge(METADATA, {"fail_msg": "Metric is {ref/metric_1}"})
     n = [metadata, "less_than", ":ref/metric_1", 1]
-    a = {"metadata": {}, "data": {"ref": {"metric_1": 2}}}
+    a = {"ref": {"metric_1": 2}}
     node = qc.build_qc_node(n, a)
     tools.assert_equal(node["message"], "Metric is 2")

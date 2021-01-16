@@ -4,7 +4,7 @@ from auto_qc import node, variable, version
 
 
 def variable_error_message(variable):
-    msg = "No matching metric '{}' found."
+    msg = "No matching metric path '{}' found in data."
     return msg.format(variable)
 
 
@@ -24,7 +24,7 @@ def generator_error_string(f, xs):
 
 def check_version_number(threshold, status):
     major_version = version.major_version()
-    threshold_version = str(status[threshold]["metadata"]["version"]["auto-qc"])
+    threshold_version = str(status[threshold]["version"])
 
     if major_version != threshold_version.split(".")[0]:
         status[

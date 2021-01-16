@@ -28,7 +28,7 @@ def get_variable_value(analysis, path):
     """
     drop_colon = path[1:]
     path_array = drop_colon.split("/")
-    return reduce(lambda a, k: a[k], path_array, analysis["data"])
+    return reduce(lambda a, k: a[k], path_array, analysis)
 
 
 def get_variable_names(qc_node):

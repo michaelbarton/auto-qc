@@ -66,7 +66,7 @@ def cli(data: str, thresholds: str, json_output: bool, manual: bool) -> None:
         with open(thresholds) as threshold, open(data) as analysis:
             evaluation = run(yaml.safe_load(threshold), yaml.safe_load(analysis))
     except objects.AutoQCEvaluationError as err:
-        stderr.print(f"[red]Error[/red]: {err}")
+        stderr.print(f"[red]Errors[/red]:\n{err}")
         sys.exit(1)
 
     print(evaluation.to_evaluation_string(json_output))
