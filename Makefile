@@ -13,7 +13,8 @@ The following commands are available for building and testing:
   $(HLT)make bootstrap$(NC)   Installs python and ruby dependencies locally
   $(HLT)make test$(NC)        Runs all unit tests defined in the test/
   $(HLT)make feature$(NC)     Runs all feature tests defined in the features/
-  $(HLT)make fmt$(NC)         Runs black cod formatting
+  $(HLT)make fmt$(NC)         Runs black and isort code formatting
+  $(HLT)make fmt_check$(NC)   Checks code is correctly formatted
   $(HLT)make build$(NC)       Builds a python package of auto_qc in dist/
 
 
@@ -94,8 +95,4 @@ test    = clear && poetry run nosetests --rednose
 bootstrap:
 	poetry install
 
-Gemfile.lock: Gemfile
-	mkdir -p log
-	bundle install --path vendor/ruby 2>&1 > log/gem.txt
-
-.PHONY: bootstrap test feature autotest autofeature doc
+.PHONY: bootstrap test feature autotest autofeature

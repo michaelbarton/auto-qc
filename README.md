@@ -1,12 +1,21 @@
 # auto-qc
 
-## Example
 
-For more documentation see `MANUAL.md`
+For the full user manual see [MANUAL.md](./auto_qc/MANUAL.md).
 
 ## Building and Testing
 
-Type `make` for list of available commands for building and testing
+Type `make` to get a full list of available commands for building and testing.
+The available commands are:
+
+```console
+make bootstrap   Installs python and ruby dependencies locally
+make test        Runs all unit tests defined in the test/
+make feature     Runs all feature tests defined in the features/
+make fmt         Runs black and isort code formatting
+make fmt_check   Checks code is correctly formatted
+make build       Builds a python package of auto_qc in dist/
+```
 
 ## Versioning
 
