@@ -1,6 +1,6 @@
 import funcy
 
-from auto_qc import node, variable, version
+from auto_qc import node, variable
 
 
 def variable_error_message(variable):
@@ -20,23 +20,6 @@ def fail_code_error_message(node):
 
 def generator_error_string(f, xs):
     return "\n".join([f(x) for x in xs])
-
-
-def check_version_number(threshold, status):
-    major_version = version.major_version()
-    threshold_version = str(status[threshold]["version"])
-
-    if major_version != threshold_version.split(".")[0]:
-        status[
-            "error"
-        ] = """\
-Incompatible threshold file syntax: {}.
-Please update the syntax to version >= {}.0.0.
-        """.format(
-            threshold_version, major_version
-        )
-
-    return status
 
 
 def check_node_paths(nodes, analyses, status):
@@ -76,3 +59,13 @@ def check_failure_codes(node_ref, status):
     if len(errors) > 0:
         status["error"] = generator_error_string(fail_code_error_message, errors)
     return status
+
+
+class AutoQCError(Exception):
+    """Auto QC generic error type."""
+    pass
+
+
+class VersionNumberError(AutoQCError):
+    """Incorrect version number error."""
+    pass

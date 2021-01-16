@@ -1,7 +1,8 @@
 from functools import partial, reduce, wraps
 from inspect import getargspec
 
-from auto_qc import objects
+import auto_qc.evaluate.error
+from auto_qc import object
 
 
 def thread_status(functions, status):
@@ -10,7 +11,7 @@ def thread_status(functions, status):
         args = item[1] if len(item) > 1 else []
 
         if "error" in status:
-            raise objects.AutoQCEvaluationError(status["error"])
+            raise auto_qc.evaluate.error.AutoQCError(status["error"])
         else:
             parameterised = reduce(partial, args, f)
             return parameterised(status)

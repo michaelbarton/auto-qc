@@ -1,16 +1,49 @@
 import dataclasses
 import json
+import textwrap
 import typing
 
 import funcy
+import pydantic
 
 from auto_qc import version
+from auto_qc.evaluate import error
 
 
-class AutoQCEvaluationError(Exception):
-    """Auto QC specific error type."""
+class ThresholdNode(pydantic.BaseModel):
+    """Validator for each node in the thresholds."""
 
-    pass
+    name: str
+    fail_code: str
+    rule: typing.List[str]
+
+
+class Thresholds(pydantic.BaseModel):
+    """Validator for the thresholds object."""
+
+    version: str
+    thresholds: typing.List[ThresholdNode]
+
+    @pydantic.validator("version")
+    def validate_version(cls, ver: str) -> str:
+        """Validate the version number in the threshold files is correct."""
+        if version.major_version(ver) != version.major_version(version.__version__):
+            raise error.VersionNumberError(
+                textwrap.dedent(
+                    f"""
+            Incompatible threshold file syntax: {ver}.
+            Please update the syntax to version >= {version.__version__}.0.0.
+                    """
+                )
+            )
+        return ver
+
+
+class AutoQC(pydantic.BaseModel):
+    """Container for all data used by auto-qc."""
+
+    thresholds: Thresholds
+    data: typing.Dict[str, typing.Any]
 
 
 @dataclasses.dataclass(frozen=True)

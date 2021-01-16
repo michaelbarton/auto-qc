@@ -1,16 +1,16 @@
 import funcy
 
-from auto_qc import node, objects, variable
+from auto_qc import node, object, variable
 
 
-def evaluate(destination: str, thresholds, analysis, status) -> objects.AutoqcEvaluation:
+def evaluate(destination: str, thresholds, analysis, status) -> object.AutoqcEvaluation:
     """
     Build a dict QC containing all data about this evaluation.
     """
     f = funcy.rpartial(build_qc_node, status[analysis])
     nodes = list(map(f, status[thresholds]["thresholds"]))
     failure_codes = {x["fail_code"] for x in nodes if not x["pass"]}
-    evaluation = objects.AutoqcEvaluation(
+    evaluation = object.AutoqcEvaluation(
         is_pass=not failure_codes,
         fail_codes=list(failure_codes),
         evaluation=nodes,

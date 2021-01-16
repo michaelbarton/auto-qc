@@ -3,20 +3,6 @@ from nose import tools
 from auto_qc.evaluate import error
 
 
-def test_check_version_number():
-    def version(v):
-        return {"threshold": {"version": v}}
-
-    status = error.check_version_number("threshold", version("3.0.0"))
-    tools.assert_not_in("error", status)
-
-    status = error.check_version_number("threshold", version("0.1.0"))
-    tools.assert_in("error", status)
-
-    status = error.check_version_number("threshold", version("1.1.0"))
-    tools.assert_in("error", status)
-
-
 def test_check_node_paths_with_valid_node():
     n = [["less_than", ":ref/metric_1", 1]]
     a = {"ref": {"metric_1": 2}}
