@@ -1,0 +1,21 @@
+{
+    "thresholds": [
+        {
+            "fail_code": "FOO_FAILED",
+            "name": "check_foo",
+            "thresholds": [ "greater_than", ":foo", 10 ]
+        },
+        {
+            "fail_code": "BAR_FAILED",
+            "name": "check_bar",
+            "thresholds": [ "greater_than", ":bar", 0 ]
+        },
+        {
+            "fail_code": "BAZ_FAILED",
+            "name": "check_baz",
+            "thresholds": [ "less_than", ":baz", 20 ]
+        }
+    ],
+    "version": "3.0.0"
+}
+

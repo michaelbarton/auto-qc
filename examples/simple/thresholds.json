@@ -1,8 +1,0 @@
-{
-    "version": "3.0.0",
-    "thresholds": [
-        [ "greater_than", ":foo", 10 ],
-        [ "greater_than", ":bar", 0 ],
-        [ "less_than", ":baz", 20 ]
-    ]
-}
