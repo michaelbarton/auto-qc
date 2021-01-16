@@ -1,34 +1,32 @@
-from functools import reduce
+import typing
 
 import funcy
-from fn import iters as it
 
 
-def is_variable(var):
+def is_variable(var: str) -> bool:
     """
     Is the string a variable reference?
     """
-    return isinstance(var, str) and it.head(var) == ":"
+    return isinstance(var, str) and var.startswith(":")
 
 
-def is_variable_path_valid(analysis, path):
+def is_variable_path_valid(data: typing.Dict[str, typing.Any], path: str) -> bool:
     """
     Does the variable path have a matching path in the analysis?
     """
-    try:
-        get_variable_value(analysis, path)
-    except KeyError:
+    value = get_variable_value(data, path)
+    if value is None:
         return False
     return True
 
 
-def get_variable_value(analysis, path):
+def get_variable_value(data: typing.Dict[str, typing.Any], path: str) -> typing.Any:
     """
     Get variable's value by traversing its path into the analysis
     """
     drop_colon = path[1:]
     path_array = drop_colon.split("/")
-    return reduce(lambda a, k: a[k], path_array, analysis)
+    return funcy.get_in(data, path_array)
 
 
 def get_variable_names(qc_node):

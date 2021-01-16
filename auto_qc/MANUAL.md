@@ -108,13 +108,11 @@ example if both QC evaluations return TRUE then this will pass. If either
 return FALSE then this will fail QC.
 
 ``` YAML
-metadata:
- version:
-   auto-qc: 3.0.0
+version: 3.0.0
 thresholds:
 - - name: example test
     pass_msg: No obvious contamination detected.
-    fail_msg: Contamination detected at {metrics/percent_contamination}
+    fail_msg: Contamination detected at {metrics/percent_contamination}%
     fail_code: ERR00001
     tags: ["contamination"]
   - greater_than
@@ -127,9 +125,7 @@ fails only when both of the nested thresholds fail. Boolean operators can be
 use arbitrarily to create more complex QC tests.
 
 ``` YAML
-metadata:
- version:
-   auto-qc: 3.0.0
+version: 3.0.0
 thresholds:
 - - name: example test
     pass_msg: No obvious contamination detected.
