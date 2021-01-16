@@ -118,7 +118,7 @@ metadata:
 thresholds:
 - - name: example test
     pass_msg: No obvious contamination detected.
-    fail_msg: Contamination detected at {metrics/percent_contamination}%
+    fail_msg: Contamination detected at {metrics/percent_contamination}
     fail_code: ERR00001
     tags: ["contamination"]
   - greater_than
