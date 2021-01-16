@@ -29,8 +29,8 @@ Scenario Outline: Using different comparison operators
    """
   When I run the command "../bin/auto-qc" with the arguments:
      | key              | value         |
-     | --analysis-file  | analysis.yml  |
-     | --threshold-file | threshold.yml |
+     | --data           | analysis.yml  |
+     | --thresholds     | threshold.yml |
   Then the standard error should be empty
   And the exit code should be 0
   And the standard out should contain:
@@ -93,8 +93,8 @@ Scenario: Using the unary not operator
    """
   When I run the command "../bin/auto-qc" with the arguments:
      | key              | value         |
-     | --analysis-file  | analysis.yml  |
-     | --threshold-file | threshold.yml |
+     | --data           | analysis.yml  |
+     | --thresholds     | threshold.yml |
   Then the standard error should be empty
   And the exit code should be 0
   And the standard out should contain:
@@ -138,8 +138,8 @@ Scenario Outline: Testing multiple different thresholds
    """
   When I run the command "../bin/auto-qc" with the arguments:
      | key              | value         |
-     | --analysis-file  | analysis.yml  |
-     | --threshold-file | threshold.yml |
+     | --data           | analysis.yml  |
+     | --thresholds     | threshold.yml |
   Then the standard error should be empty
   And the exit code should be 0
   And the standard out should contain:
@@ -185,8 +185,8 @@ Scenario Outline: Using nested thresholds
    """
   When I run the command "../bin/auto-qc" with the arguments:
      | key              | value         |
-     | --analysis-file  | analysis.yml  |
-     | --threshold-file | threshold.yml |
+     | --data           | analysis.yml  |
+     | --thresholds     | threshold.yml |
   Then the standard error should be empty
   And the exit code should be 0
   And the standard out should contain:

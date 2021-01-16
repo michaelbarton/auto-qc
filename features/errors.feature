@@ -7,11 +7,11 @@ Scenario: The given analysis file does not exist
   Given I create the file "thresholds.yml"
   When I run the command "../bin/auto-qc" with the arguments:
      | key              | value          |
-     | --analysis-file  | none           |
-     | --threshold-file | thresholds.yml |
+     | --data           | none           |
+     | --thresholds     | thresholds.yml |
   Then the standard error should contain:
     """
-    Error: Invalid value for '--analysis-file' / '-a': Path 'none' does not exist
+    Error: Invalid value for '--data         ' / '-a': Path 'none' does not exist
     """
   And the exit code should be non-zero
 
@@ -19,8 +19,8 @@ Scenario: The given thresholds file does not exist
   Given I create the file "analysis.yml"
   When I run the command "../bin/auto-qc" with the arguments:
      | key              | value          |
-     | --analysis-file  | analysis.yml   |
-     | --threshold-file | none           |
+     | --data           | analysis.yml   |
+     | --thresholds     | none           |
   Then the standard error should contain:
     """
     Error: Invalid value for '--threshold-file' / '-t': Path 'none' does not exist
@@ -49,8 +49,8 @@ Scenario Outline: Incompatible threshold file version number
    """
   When I run the command "../bin/auto-qc" with the arguments:
      | key              | value         |
-     | --analysis-file  | analysis.yml  |
-     | --threshold-file | threshold.yml |
+     | --data           | analysis.yml  |
+     | --thresholds     | threshold.yml |
   Then the standard out should be empty
   And the exit code should be 1
   And the standard error should contain:
@@ -88,8 +88,8 @@ Scenario Outline: The given value does not exist
    """
   When I run the command "../bin/auto-qc" with the arguments:
      | key              | value         |
-     | --analysis-file  | analysis.yml  |
-     | --threshold-file | threshold.yml |
+     | --data           | analysis.yml  |
+     | --thresholds     | threshold.yml |
   Then the standard out should be empty
   And the standard error should equal:
     """
@@ -125,8 +125,8 @@ Scenario: A QC entry is missing a failure code
    """
   When I run the command "../bin/auto-qc" with the arguments:
      | key              | value         |
-     | --analysis-file  | analysis.yml  |
-     | --threshold-file | threshold.yml |
+     | --data           | analysis.yml  |
+     | --thresholds     | threshold.yml |
   Then the standard out should be empty
   And the standard error should equal:
     """

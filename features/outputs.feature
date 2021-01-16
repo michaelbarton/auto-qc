@@ -26,8 +26,8 @@ Scenario Outline: Generating JSON formatted output
    """
   When I run the command "../bin/auto-qc" with the arguments:
      | key              | value         |
-     | --analysis-file  | analysis.yml  |
-     | --threshold-file | threshold.yml |
+     | --data           | analysis.yml  |
+     | --thresholds     | threshold.yml |
      | --json-output    |               |
   Then the standard error should be empty
   And the exit code should be 0
