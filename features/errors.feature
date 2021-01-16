@@ -37,11 +37,7 @@ Scenario Outline: Incompatible threshold file version number
   And I create the file "threshold.yml" with the contents:
    """
    version: <version>
-   thresholds:
-   -
-     - greater_than
-     - :object_1/metric_1/value
-     - 1
+   thresholds: []
    """
   When I run the command "../bin/auto-qc" with the arguments:
      | key              | value         |
@@ -73,7 +69,9 @@ Scenario Outline: The given value does not exist
    """
    version: 3.0.0
    thresholds:
-   -
+   - name: example
+     fail_code: ERR_1
+     rule:
      - <operator>
      - <variable>
      - 1
@@ -105,9 +103,10 @@ Scenario: A QC entry is missing a failure code
    """
    version: 3.0.0
    thresholds:
-   - - name: example test
-       fail_msg: fails
-       pass_msg: passes
+   - name: example test
+     fail_msg: fails
+     pass_msg: passes
+     rule:
      - 'greater_than'
      - :value
      - 2

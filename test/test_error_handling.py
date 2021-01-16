@@ -1,80 +1,48 @@
+import typing
+
 from nose import tools
 
+from auto_qc import exception, object, version
 from auto_qc.evaluate import error
 
 
-def test_check_node_paths_with_valid_node():
-    n = [["less_than", ":ref/metric_1", 1]]
-    a = {"ref": {"metric_1": 2}}
+def _create_auto_qc(
+    data: typing.Dict[str, typing.Any], rule: typing.List[typing.Any]
+) -> object.AutoQC:
+    """Helper function to create an auto-qc object."""
+    return object.AutoQC(
+        thresholds=object.Thresholds(
+            version=version.__version__,
+            thresholds=[{"name": "example_test", "fail_code": "ERR_1", "rule": rule}],
+        ),
+        data=data,
+    )
 
-    status = {"nodes": {"thresholds": n}, "analyses": a}
-    tools.assert_not_in("error", status)
 
-
+@tools.raises(exception.AutoQCError)
 def test_check_node_paths_with_unknown_path():
-    n = [["less_than", ":ref/unknown", 1]]
-    a = {"ref": {"metric_1": 2}}
-
-    status = {"nodes": {"thresholds": n}, "analyses": a}
-    result = error.check_node_paths("nodes", "analyses", status)
-    tools.assert_in("error", result)
-    tools.assert_equal(result["error"], "No matching metric path ':ref/unknown' found in data.")
+    """Should raise an error with an unknown data path."""
+    auto_qc_eval = _create_auto_qc({"ref": {"metric_1": 2}}, ["less_than", ":ref/unknown", 1])
+    error.check_node_paths(auto_qc_eval)
 
 
 def test_check_operators_with_known_operator():
-    n = [["less_than", 2, 1]]
-    status = {"nodes": {"thresholds": n}}
-    tools.assert_not_in("error", error.check_operators("nodes", status))
+    """Should not raise an error if the operators are valid"""
+    auto_qc_eval = _create_auto_qc({"ref": {"metric_1": 2}}, ["less_than", ":ref/unknown", 1])
+    tools.assert_not_in("error", error.check_operators(auto_qc_eval))
+    # Should not raise
 
 
+@tools.raises(exception.AutoQCError)
 def test_check_operators_with_unknown_operator():
-    n = [["unknown", 2, 1]]
-    status = {"nodes": {"thresholds": n}}
-    tools.assert_in("error", error.check_operators("nodes", status))
-    tools.assert_equal(status["error"], "Unknown operator 'unknown.'")
+    """Should raise an error if one of the operators is invalid."""
+    auto_qc_eval = _create_auto_qc({"ref": {"metric_1": 2}}, ["unknown", ":ref/unknown", 1])
+    tools.assert_not_in("error", error.check_operators(auto_qc_eval))
 
 
+@tools.raises(exception.AutoQCError)
 def test_check_operators_with_unknown_nested_operator():
-    n = [["and", ["or", ["unknown", 2, 1]]]]
-    status = {"nodes": {"thresholds": n}}
-    tools.assert_in("error", error.check_operators("nodes", status))
-    tools.assert_equal(status["error"], "Unknown operator 'unknown.'")
+    """Should raise an error if one of the operators is nested and invalid."""
+    auto_qc_eval = _create_auto_qc({"ref": {"metric_1": 2}}, ["and", ["or", ["unknown", 2, 1]]])
+    tools.assert_not_in("error", error.check_operators(auto_qc_eval))
 
-
-def test_check_operators_with_doc_string():
-    n = [[{"name": "my qc threshold"}, "less_than", 2, 1]]
-    status = {"nodes": {"thresholds": n}}
-    tools.assert_not_in("error", error.check_operators("nodes", status))
-
-
-def test_check_unknown_operator_with_doc_string():
-    n = [[{"name": "my qc threshold"}, "unknown", 2, 1]]
-    status = {"nodes": {"thresholds": n}}
-    tools.assert_in("error", error.check_operators("nodes", status))
-    tools.assert_equal(status["error"], "Unknown operator 'unknown.'")
-
-
-def test_check_operators_with_unknown_nested_operator_with_doc_string():
-    n = [[{"name": "my qc threshold"}, "unknown", ["or", ["less_than", 2, 1]]]]
-    status = {"nodes": {"thresholds": n}}
-    tools.assert_in("error", error.check_operators("nodes", status))
-    tools.assert_equal(status["error"], "Unknown operator 'unknown.'")
-
-
-def test_check_node_paths_with_no_failure_code():
-    n = [[{"name": "test"}, "less_than", ":metric_1", 1]]
-    a = {"metric_1": 2}
-
-    status = {"nodes": {"thresholds": n}, "analyses": a}
-    result = error.check_failure_codes("nodes", status)
-    tools.assert_in("error", result)
-    tools.assert_equal(result["error"], "The QC entry 'test' is missing a failure code")
-
-
-def test_check_node_paths_with_failure_code():
-    n = [[{"name": "test", "fail_code": "ERR"}, "less_than", ":metric_1", 1]]
-    a = {"metric_1": 2}
-
-    status = {"nodes": {"thresholds": n}, "analyses": a}
-    result = error.check_failure_codes("nodes", status)
-    tools.assert_not_in("error", result)

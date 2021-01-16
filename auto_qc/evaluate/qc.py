@@ -3,21 +3,19 @@ import funcy
 from auto_qc import node, object, variable
 
 
-def evaluate(destination: str, thresholds, analysis, status) -> object.AutoqcEvaluation:
+def evaluate(state: object.AutoQC) -> object.AutoQCEvaluation:
     """
     Build a dict QC containing all data about this evaluation.
     """
-    f = funcy.rpartial(build_qc_node, status[analysis])
-    nodes = list(map(f, status[thresholds]["thresholds"]))
+    f = funcy.rpartial(build_qc_node, state.data)
+    nodes = list(map(f, state.thresholds))
     failure_codes = {x["fail_code"] for x in nodes if not x["pass"]}
-    evaluation = object.AutoqcEvaluation(
+    evaluation = object.AutoQCEvaluation(
         is_pass=not failure_codes,
         fail_codes=list(failure_codes),
         evaluation=nodes,
     )
-
-    status[destination] = evaluation
-    return status
+    return evaluation
 
 
 def create_variable_dict(input_node, analysis):

@@ -7,7 +7,7 @@ import funcy
 import pydantic
 
 from auto_qc import version
-from auto_qc.evaluate import error
+from auto_qc.evaluate import exception
 
 
 class ThresholdNode(pydantic.BaseModel):
@@ -15,7 +15,7 @@ class ThresholdNode(pydantic.BaseModel):
 
     name: str
     fail_code: str
-    rule: typing.List[str]
+    rule: typing.List[typing.Any]
 
 
 class Thresholds(pydantic.BaseModel):
@@ -28,7 +28,7 @@ class Thresholds(pydantic.BaseModel):
     def validate_version(cls, ver: str) -> str:
         """Validate the version number in the threshold files is correct."""
         if version.major_version(ver) != version.major_version(version.__version__):
-            raise error.VersionNumberError(
+            raise exception.VersionNumberException(
                 textwrap.dedent(
                     f"""
             Incompatible threshold file syntax: {ver}.
@@ -47,7 +47,7 @@ class AutoQC(pydantic.BaseModel):
 
 
 @dataclasses.dataclass(frozen=True)
-class AutoqcEvaluation:
+class AutoQCEvaluation:
     """Container for the result of evaluating the QC dictionary."""
 
     is_pass: bool

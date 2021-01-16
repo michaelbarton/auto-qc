@@ -8,23 +8,19 @@ from rich import console, markdown
 
 import auto_qc
 import auto_qc.evaluate.error
+import auto_qc.exception
 from auto_qc import object
 from auto_qc.evaluate import error, qc
-from auto_qc.util import workflow
-
-METHOD_CHAIN = [
-    (error.check_node_paths, ["thresholds", "data"]),
-    (error.check_operators, ["thresholds"]),
-    (error.check_failure_codes, ["thresholds"]),
-    (qc.evaluate, ["qc_dict", "thresholds", "data"]),
-]
 
 
 def run(
     thresholds: typing.Dict[str, typing.Any], data: typing.Dict[str, typing.Any]
-) -> object.AutoqcEvaluation:
-    status = workflow.thread_status(METHOD_CHAIN, object.AutoQC(thresholds=thresholds, data=data))
-    return status["qc_dict"]
+) -> object.AutoQCEvaluation:
+
+    auto_qc_eval = object.AutoQC(thresholds=thresholds, data=data)
+    error.check_node_paths(auto_qc_eval)
+    error.check_operators(auto_qc_eval)
+    return qc.evaluate(auto_qc_eval)
 
 
 @click.command()
@@ -65,7 +61,7 @@ def cli(data: str, thresholds: str, json_output: bool, manual: bool) -> None:
     try:
         with open(thresholds) as threshold, open(data) as analysis:
             evaluation = run(yaml.safe_load(threshold), yaml.safe_load(analysis))
-    except auto_qc.evaluate.error.AutoQCError as err:
+    except auto_qc.exception.AutoQCError as err:
         stderr.print(f"[red]Errors[/red]:\n{err}")
         sys.exit(1)
 
