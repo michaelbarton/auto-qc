@@ -6,6 +6,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## 3.0.0 - Unreleased
 
 * Update code from python 2.7 => 3.7.
+* Rename flag: `--threshold-file` => `--thresholds`
+* Rename flag: `--analysis-file` => `--data`
 * Add a flag `--manual / -m` which when given displays the `MANUAL.md` file.
   This replaces trying to install a man page on the user's system, which is
   hard to do reliably.

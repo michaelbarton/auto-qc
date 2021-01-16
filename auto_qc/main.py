@@ -42,12 +42,13 @@ def run(
 @click.option("--manual", "-m", help="Display the manual for auto-qc.", is_flag=True, default=False)
 def cli(data: str, thresholds: str, json_output: bool, manual: bool) -> None:
 
+    stdout = console.Console(width=100)
     stderr = console.Console(width=100, stderr=True)
 
     if manual:
         with resources.path(auto_qc.__name__, "MANUAL.md") as manual_path:
             manual = markdown.Markdown(manual_path.read_text())
-            stderr.print(manual)
+            stdout.print(manual)
         exit(0)
 
     missing_flags = []
@@ -58,14 +59,14 @@ def cli(data: str, thresholds: str, json_output: bool, manual: bool) -> None:
         missing_flags.append("--thresholds")
 
     if missing_flags:
-        stderr.print(f"[red]Error[/red]: missing required flags: {', '.join(missing_flags) }\n")
+        stderr.print(f"[red]Error[/red]: missing required flags: {', '.join(missing_flags) }")
         exit(1)
 
     try:
         with open(thresholds) as threshold, open(data) as analysis:
             evaluation = run(yaml.safe_load(threshold), yaml.safe_load(analysis))
     except objects.AutoQCEvaluationError as err:
-        stderr.print(f"[red]Error[/red]: {err}\n")
+        stderr.print(f"[red]Error[/red]: {err}")
         sys.exit(1)
 
     print(evaluation.to_evaluation_string(json_output))

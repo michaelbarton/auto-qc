@@ -2,18 +2,18 @@
 
 ## SYNOPSIS
 
-`auto-qc` --analysis-file <ANALYSIS_FILE> --threshold-file <THRESHOLD_FILE>
+`auto-qc` --data <ANALYSIS_FILE> --thesholds <THRESHOLD_FILE>
 
 ## OPTIONS
 
-* `-a`, `--analysis-file` <ANALYSIS_FILE>: The path to the file containing
-  input data to be checked for quality.
+* `-d`, `--data` <DATA_FILE>: The path to the file containing input data to be
+  checked.
 
-* `-t`, `--threshold-file` <THRESHOLD_FILE>: The path to the file containing
-  the pass/fail thresholds for quality control.
+* `-t`, `--thresholds` <THRESHOLD_FILE>: The path to the file containing the
+  pass/fail thresholds.
 
-* `-j`, `--json-output`: Generate JSON output describing each of the quality
-  control tests.
+* `-j`, `--json-output`: Generate JSON output describing each of the threshold
+  checks.
 
 ## SYNTAX
 

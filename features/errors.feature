@@ -11,7 +11,7 @@ Scenario: The given analysis file does not exist
      | --thresholds     | thresholds.yml |
   Then the standard error should contain:
     """
-    Error: Invalid value for '--data         ' / '-a': Path 'none' does not exist
+    Error: Invalid value for '--data' / '-d': Path 'none' does not exist
     """
   And the exit code should be non-zero
 
@@ -23,7 +23,7 @@ Scenario: The given thresholds file does not exist
      | --thresholds     | none           |
   Then the standard error should contain:
     """
-    Error: Invalid value for '--threshold-file' / '-t': Path 'none' does not exist
+    Error: Invalid value for '--thresholds' / '-t': Path 'none' does not exist
 
     """
   And the exit code should be non-zero
@@ -93,7 +93,7 @@ Scenario Outline: The given value does not exist
   Then the standard out should be empty
   And the standard error should equal:
     """
-    <error>
+    Error: <error>
 
     """
   And the exit code should be 1
@@ -130,7 +130,7 @@ Scenario: A QC entry is missing a failure code
   Then the standard out should be empty
   And the standard error should equal:
     """
-    The QC entry 'example test' is missing a failure code
+    Error: The QC entry 'example test' is missing a failure code
 
     """
   And the exit code should be 1
