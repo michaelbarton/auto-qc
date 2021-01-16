@@ -28,9 +28,7 @@ def run(
 
 
 @click.command()
-@click.option(
-    "--data", "-a", help="Path to data YAML/JSON.", type=click.Path(exists=True)
-)
+@click.option("--data", "-d", help="Path to data YAML/JSON.", type=click.Path(exists=True))
 @click.option(
     "--thresholds", "-t", help="Path to thresholds YAML/JSON.", type=click.Path(exists=True)
 )
@@ -44,25 +42,30 @@ def run(
 @click.option("--manual", "-m", help="Display the manual for auto-qc.", is_flag=True, default=False)
 def cli(data: str, thresholds: str, json_output: bool, manual: bool) -> None:
 
+    stderr = console.Console(width=100, stderr=True)
+
     if manual:
         with resources.path(auto_qc.__name__, "MANUAL.md") as manual_path:
             manual = markdown.Markdown(manual_path.read_text())
-            console.Console(width=100).print(manual)
+            stderr.print(manual)
         exit(0)
 
+    missing_flags = []
     if not data:
-        sys.stderr.write("Missing required flag: --data / -d\n")
-        exit(1)
+        missing_flags.append("--data")
 
     if not thresholds:
-        sys.stderr.write("Missing required flag: --thresholds / -t\n")
+        missing_flags.append("--thresholds")
+
+    if missing_flags:
+        stderr.print(f"[red]Error[/red]: missing required flags: {', '.join(missing_flags) }\n")
         exit(1)
 
     try:
         with open(thresholds) as threshold, open(data) as analysis:
             evaluation = run(yaml.safe_load(threshold), yaml.safe_load(analysis))
     except objects.AutoQCEvaluationError as err:
-        sys.stderr.write(f"{err}\n")
+        stderr.print(f"[red]Error[/red]: {err}\n")
         sys.exit(1)
 
     print(evaluation.to_evaluation_string(json_output))
