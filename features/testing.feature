@@ -14,14 +14,14 @@ Scenario Outline: Using different comparison operators
    """
    version: 3.0.0
    thresholds:
-   -
-     - name: example test
-       fail_msg: fails
-       pass_msg: passes
-       fail_code: ERR
-     - <operator>
-     - :object_1/metric_1/value
-     - <literal>
+   - name: example test
+     fail_msg: fails
+     pass_msg: passes
+     fail_code: ERR
+     rule:
+       - <operator>
+       - :object_1/metric_1/value
+       - <literal>
    """
   When I run the command "../bin/auto-qc" with the arguments:
      | key              | value         |
@@ -75,13 +75,13 @@ Scenario: Using the unary not operator
    """
    version: 3.0.0
    thresholds:
-   -
-     - name: example test
-       fail_msg: fails
-       pass_msg: passes
-       fail_code: ERR
-     - not
-     - :object_1/metric_1/value
+   - name: example test
+     fail_msg: fails
+     pass_msg: passes
+     fail_code: ERR
+     rule:
+       - not
+       - :object_1/metric_1/value
    """
   When I run the command "../bin/auto-qc" with the arguments:
      | key              | value         |
@@ -109,20 +109,22 @@ Scenario Outline: Testing multiple different thresholds
    """
    version: 3.0.0
    thresholds:
-   - - name: example test 1
-       fail_msg: fails
-       pass_msg: passes
-       fail_code: ERR
-     - 'greater_than'
-     - ':object_1/metric_1/value'
-     - <lit_1>
-   - - name: example test 2
-       fail_msg: fails
-       pass_msg: passes
-       fail_code: ERR
-     - 'greater_than'
-     - ':object_2/metric_2/value'
-     - <lit_2>
+   - name: example test 1
+     fail_msg: fails
+     pass_msg: passes
+     fail_code: ERR
+     rule:
+       - 'greater_than'
+       - ':object_1/metric_1/value'
+       - <lit_1>
+   - name: example test 2
+     fail_msg: fails
+     pass_msg: passes
+     fail_code: ERR
+     rule:
+       - 'greater_than'
+       - ':object_2/metric_2/value'
+       - <lit_2>
    """
   When I run the command "../bin/auto-qc" with the arguments:
     | key              | value         |
@@ -154,18 +156,18 @@ Scenario Outline: Using nested thresholds
    """
    version: 3.0.0
    thresholds:
-   -
-     - name: example test 1
-       fail_msg: fails
-       pass_msg: passes
-       fail_code: ERR
-     - and
-     - - 'greater_than'
-       - :object_1/metric_1/value
-       - <lit_1>
-     - - 'greater_than'
-       - :object_1/metric_1/value
-       - <lit_2>
+   - name: example test 1
+     fail_msg: fails
+     pass_msg: passes
+     fail_code: ERR
+     rule:
+       - and
+       - - 'greater_than'
+         - :object_1/metric_1/value
+         - <lit_1>
+       - - 'greater_than'
+         - :object_1/metric_1/value
+         - <lit_2>
    """
   When I run the command "../bin/auto-qc" with the arguments:
     | key              | value         |
