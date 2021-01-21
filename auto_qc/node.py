@@ -1,23 +1,20 @@
-import operator as op
-
+import operator
 import typing
 
-from auto_qc import object
-
+import fn
 import funcy
-from fn import F
-from fn import iters as it
+from fn import iters
 
-import auto_qc.util.functional as fn
-import auto_qc.variable as var
+from auto_qc import variable
+from auto_qc.util import functional
 
 OPERATORS = {
-    "greater_than": op.gt,
-    "greater_equal_than": op.ge,
-    "less_than": op.lt,
-    "less_equal_than": op.le,
-    "equals": op.eq,
-    "not_equals": op.ne,
+    "greater_than": operator.gt,
+    "greater_equal_than": operator.ge,
+    "less_than": operator.lt,
+    "less_equal_than": operator.le,
+    "equals": operator.eq,
+    "not_equals": operator.ne,
     "and": lambda *args: all(args),
     "or": lambda *args: any(args),
     "not": lambda x: not x,
@@ -28,15 +25,11 @@ OPERATORS = {
 
 
 def is_operator(v):
-    return op.contains(list(OPERATORS.keys()), v)
-
-
-def operator(v):
-    return OPERATORS[v]
+    return v in OPERATORS.keys()
 
 
 def has_doc_dict(qc_node):
-    return isinstance(it.head(qc_node), dict)
+    return isinstance(iters.head(qc_node), dict)
 
 
 def get_all_operators(qc_node):
@@ -46,15 +39,15 @@ def get_all_operators(qc_node):
 
     def _walk_node(n):
         if has_doc_dict(n):
-            return _walk_node(list(it.tail(n)))
+            return _walk_node(list(iters.tail(n)))
         else:
-            operator = it.head(n)
-            rest = it.tail(n)
-            return [operator, *f(rest)]
+            operator_ = iters.head(n)
+            rest = iters.tail(n)
+            return [operator_, *f(rest)]
 
-    f = funcy.partial(map, fn.recursive_apply(_walk_node, fn.empty_list))
+    f = funcy.partial(map, functional.recursive_apply(_walk_node, functional.empty_list))
 
-    return fn.flatten(_walk_node(qc_node))
+    return functional.flatten(_walk_node(qc_node))
 
 
 def eval_variables(analyses: typing.Dict[str, typing.Any], rule: typing.List[typing.Any]):
@@ -76,12 +69,12 @@ def eval_variables(analyses: typing.Dict[str, typing.Any], rule: typing.List[typ
     """
 
     def _eval(n):
-        if var.is_variable(n):
-            return var.get_variable_value(analyses, n)
+        if variable.is_variable(n):
+            return variable.get_variable_value(analyses, n)
         else:
             return n
 
-    return list(map(fn.recursive_apply(F(eval_variables, analyses), _eval), rule))
+    return list(map(functional.recursive_apply(fn.F(eval_variables, analyses), _eval), rule))
 
 
 def evaluate_rule(node: typing.List[typing.Any]) -> bool:
@@ -99,6 +92,6 @@ def evaluate_rule(node: typing.List[typing.Any]) -> bool:
       >>> evaluate_rule([>, 0, 1])
       FALSE
     """
-    args = list(map(fn.recursive_apply(evaluate_rule), it.tail(node)))
-    f = operator(it.head(node))
+    args = list(map(functional.recursive_apply(evaluate_rule), iters.tail(node)))
+    f = OPERATORS[node[0]]
     return f(*args)

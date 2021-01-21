@@ -9,9 +9,7 @@ def check_node_paths(state: object.AutoQC) -> None:
     message in the status if not.
     """
 
-    variable_names = funcy.flatten(
-        [variable.get_variable_names(x.rule) for x in state.thresholds]
-    )
+    variable_names = funcy.flatten([variable.get_variable_names(x.rule) for x in state.thresholds])
     invalid_variables = {
         x for x in variable_names if not variable.is_variable_path_valid(state.data, x)
     }

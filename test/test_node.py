@@ -52,7 +52,7 @@ def test_eval_variable_with_nested_list():
 
 
 def test_eval_with_doc_string():
-    n = [{"name": "my threshold"}, "greater_than", 2, 1]
+    n = ["greater_than", 2, 1]
     tools.assert_true(node.evaluate_rule(n))
 
 
@@ -67,5 +67,5 @@ def test_get_all_operators_with_nested_threshold():
 
 
 def test_get_all_operators_with_doc_string():
-    n = [{"name": "my qc threshold"}, "less_than", 2, 1]
+    n = ["less_than", 2, 1]
     tools.assert_equal(node.get_all_operators(n), ["less_than"])

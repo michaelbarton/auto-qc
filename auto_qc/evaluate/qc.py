@@ -44,7 +44,9 @@ def does_node_pass(input_node: object.ThresholdNode, analysis):
     return node.evaluate_rule(node.eval_variables(analysis, input_node.rule))
 
 
-def create_qc_message(is_pass: bool, input_node: object.ThresholdNode, variables: typing.Dict[str, typing.Any]):
+def create_qc_message(
+    is_pass: bool, input_node: object.ThresholdNode, variables: typing.Dict[str, typing.Any]
+):
     if is_pass:
         return input_node.pass_msg.format(**variables)
     return input_node.fail_msg.format(**variables)
@@ -59,6 +61,6 @@ def build_qc_node(input_node: object.ThresholdNode, analysis: typing.Dict[str, t
         "name": input_node.name,
         "pass": is_pass,
         "fail_code": input_node.fail_code,
-        "tags": input_node.tags,
+        "tags": input_node.tags or [],
         "message": create_qc_message(is_pass, input_node, variables),
     }
