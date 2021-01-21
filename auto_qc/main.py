@@ -3,6 +3,7 @@ import typing
 from importlib import resources
 
 import click
+import pydantic
 import yaml
 from rich import console, markdown
 
@@ -62,6 +63,9 @@ def cli(data: str, thresholds: str, json_output: bool, manual: bool) -> None:
         with open(thresholds) as threshold, open(data) as analysis:
             evaluation = run(yaml.safe_load(threshold), yaml.safe_load(analysis))
     except auto_qc.exception.AutoQCError as err:
+        stderr.print(f"[red]Errors[/red]:\n{err}")
+        sys.exit(1)
+    except pydantic.ValidationError as err:
         stderr.print(f"[red]Errors[/red]:\n{err}")
         sys.exit(1)
 
