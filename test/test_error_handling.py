@@ -29,7 +29,7 @@ def test_check_node_paths_with_unknown_path():
 def test_check_operators_with_known_operator():
     """Should not raise an error if the operators are valid"""
     auto_qc_eval = _create_auto_qc({"ref": {"metric_1": 2}}, ["less_than", ":ref/unknown", 1])
-    tools.assert_not_in("error", error.check_operators(auto_qc_eval))
+    error.check_operators(auto_qc_eval)
     # Should not raise
 
 
@@ -37,12 +37,11 @@ def test_check_operators_with_known_operator():
 def test_check_operators_with_unknown_operator():
     """Should raise an error if one of the operators is invalid."""
     auto_qc_eval = _create_auto_qc({"ref": {"metric_1": 2}}, ["unknown", ":ref/unknown", 1])
-    tools.assert_not_in("error", error.check_operators(auto_qc_eval))
+    error.check_operators(auto_qc_eval)
 
 
 @tools.raises(exception.AutoQCError)
 def test_check_operators_with_unknown_nested_operator():
     """Should raise an error if one of the operators is nested and invalid."""
     auto_qc_eval = _create_auto_qc({"ref": {"metric_1": 2}}, ["and", ["or", ["unknown", 2, 1]]])
-    tools.assert_not_in("error", error.check_operators(auto_qc_eval))
-
+    error.check_operators(auto_qc_eval)

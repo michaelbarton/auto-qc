@@ -9,9 +9,10 @@ def check_node_paths(state: object.AutoQC) -> None:
     message in the status if not.
     """
 
+    variable_names = funcy.flatten([variable.get_variable_names(x.rule) for x in state.thresholds.thresholds])
     invalid_variables = {
         x
-        for x in variable.get_variable_names(state.thresholds)
+        for x in variable_names
         if not variable.is_variable_path_valid(state.data, x)
     }
 
@@ -26,8 +27,8 @@ def check_operators(state: object.AutoQC) -> None:
     Checks that all operators listed in the QC file are valid. Sets an error
     message in the status if not.
     """
-    operators = funcy.mapcat(node.get_all_operators, state.thresholds)
-    errors = {node.is_operator(x) for x in operators}
+    operators = funcy.flatten([node.get_all_operators(x.rule) for x in state.thresholds.thresholds])
+    errors = {x for x in operators if not node.is_operator(x)}
 
     if errors:
         raise exception.AutoQCError("\n".join([f"Unknown operator '{x}.'" for x in errors]))
