@@ -11,14 +11,15 @@ Scenario Outline: Generating JSON formatted output
    """
    version: 3.0.0
    thresholds:
-   - - name: example test
-       fail_msg: fails
-       pass_msg: passes
-       fail_code: ERR00001
-       tags: ["contamination"]
-     - 'greater_than'
-     - :value
-     - <literal>
+   - name: example test
+     fail_msg: fails
+     pass_msg: passes
+     fail_code: ERR00001
+     tags: ["contamination"]
+     rule:
+       - 'greater_than'
+       - :value
+       - <literal>
    """
   When I run the command "../bin/auto-qc" with the arguments:
      | key              | value         |

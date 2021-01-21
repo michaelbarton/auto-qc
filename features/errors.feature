@@ -116,10 +116,9 @@ Scenario: A QC entry is missing a failure code
     | --data           | analysis.yml  |
     | --thresholds     | threshold.yml |
   Then the standard out should be empty
-  And the standard error should equal:
+  And the standard error should contain:
     """
-    Errors:
-    The QC entry 'example test' is missing a failure code
-
+    1 validation error for AutoQC
+    thresholds -> 0 -> fail_code
     """
   And the exit code should be 1

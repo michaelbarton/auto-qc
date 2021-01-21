@@ -1,4 +1,4 @@
-import funcy
+import typing
 
 from auto_qc import node, object, variable
 
@@ -7,8 +7,7 @@ def evaluate(state: object.AutoQC) -> object.AutoQCEvaluation:
     """
     Build a dict QC containing all data about this evaluation.
     """
-    f = funcy.rpartial(build_qc_node, state.data)
-    nodes = list(map(f, state.thresholds))
+    nodes = [build_qc_node(x, state.data) for x in state.thresholds]
     failure_codes = {x["fail_code"] for x in nodes if not x["pass"]}
     evaluation = object.AutoQCEvaluation(
         is_pass=not failure_codes,
@@ -29,12 +28,12 @@ def create_variable_dict(input_node, analysis):
     )
 
 
-def does_node_pass(input_node, analysis):
+def does_node_pass(input_node: object.ThresholdNode, analysis):
     """
     Evaluates the PASS/FAIL status of a QC node.
 
     Args:
-      node (list): An s-expression list in the form of [operator, arg1, arg2, ...].
+      input_node: An s-expression list in the form of [operator, arg1, arg2, ...].
 
       analysis (dict): A dictionary containing to the variables referenced in the
       given QC node
@@ -42,23 +41,24 @@ def does_node_pass(input_node, analysis):
     Yields:
       True if the node passes QC, False if it fails QC.
     """
-    return node.eval(node.eval_variables(analysis, input_node))
+    return node.evaluate_rule(node.eval_variables(analysis, input_node.rule))
 
 
-def create_qc_message(is_pass, input_node, variables):
-    x = "pass_msg" if is_pass else "fail_msg"
-    return funcy.get_in(input_node, [0, x]).format(**variables)
+def create_qc_message(is_pass: bool, input_node: object.ThresholdNode, variables: typing.Dict[str, typing.Any]):
+    if is_pass:
+        return input_node.pass_msg.format(**variables)
+    return input_node.fail_msg.format(**variables)
 
 
-def build_qc_node(input_node, analysis):
+def build_qc_node(input_node: object.ThresholdNode, analysis: typing.Dict[str, typing.Any]):
     is_pass = does_node_pass(input_node, analysis)
     variables = create_variable_dict(input_node, analysis)
 
     return {
         "variables": variables,
-        "name": funcy.get_in(input_node, [0, "name"]),
+        "name": input_node.name,
         "pass": is_pass,
-        "fail_code": funcy.get_in(input_node, [0, "fail_code"]),
-        "tags": funcy.get_in(input_node, [0, "tags"]) or [],
+        "fail_code": input_node.fail_code,
+        "tags": input_node.tags,
         "message": create_qc_message(is_pass, input_node, variables),
     }

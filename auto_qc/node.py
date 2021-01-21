@@ -1,5 +1,9 @@
 import operator as op
 
+import typing
+
+from auto_qc import object
+
 import funcy
 from fn import F
 from fn import iters as it
@@ -53,16 +57,15 @@ def get_all_operators(qc_node):
     return fn.flatten(_walk_node(qc_node))
 
 
-def eval_variables(analyses, node):
+def eval_variables(analyses: typing.Dict[str, typing.Any], rule: typing.List[typing.Any]):
     """
     Replace all variables in a node s-expression with their referenced literal
     value.
 
     Args:
-      analysis (dict): A dictionary corresponding to the values referenced in the
+      analysis: A dictionary corresponding to the values referenced in the
       given s-expression.
-
-      node (list): An s-expression list in the form of [operator, arg1, arg2, ...].
+      rule: An s-expression list in the form of [operator, arg1, arg2, ...].
 
     Yields:
       A node expression with referenced values replaced with their literal values.
@@ -78,10 +81,10 @@ def eval_variables(analyses, node):
         else:
             return n
 
-    return list(map(fn.recursive_apply(F(eval_variables, analyses), _eval), node))
+    return list(map(fn.recursive_apply(F(eval_variables, analyses), _eval), rule))
 
 
-def eval(node):
+def evaluate_rule(node: typing.List[typing.Any]) -> bool:
     """
     Evaluate an s-expression by applying the operator to the rest of the arguments.
 
@@ -93,12 +96,9 @@ def eval(node):
       recursively if any of the args are a list.
 
     Examples:
-      >>> eval([>, 0, 1])
+      >>> evaluate_rule([>, 0, 1])
       FALSE
     """
-    if isinstance(it.head(node), dict):
-        return eval(list(it.tail(node)))
-    else:
-        args = list(map(fn.recursive_apply(eval), it.tail(node)))
-        f = operator(it.head(node))
-        return f(*args)
+    args = list(map(fn.recursive_apply(evaluate_rule), it.tail(node)))
+    f = operator(it.head(node))
+    return f(*args)

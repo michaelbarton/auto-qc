@@ -16,6 +16,9 @@ class ThresholdNode(pydantic.BaseModel):
     name: str
     fail_code: str
     rule: typing.List[typing.Any]
+    pass_msg: typing.Optional[str]
+    fail_msg: typing.Optional[str]
+    tags: typing.Optional[typing.List[str]]
 
 
 class AutoQC(pydantic.BaseModel):
