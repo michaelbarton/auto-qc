@@ -18,11 +18,12 @@ class ThresholdNode(pydantic.BaseModel):
     rule: typing.List[typing.Any]
 
 
-class Thresholds(pydantic.BaseModel):
-    """Validator for the thresholds object."""
+class AutoQC(pydantic.BaseModel):
+    """Container for all data used by auto-qc."""
 
     version: str
     thresholds: typing.List[ThresholdNode]
+    data: typing.Dict[str, typing.Any]
 
     @pydantic.validator("version")
     def validate_version(cls, ver: str) -> str:
@@ -37,13 +38,6 @@ class Thresholds(pydantic.BaseModel):
                 )
             )
         return ver
-
-
-class AutoQC(pydantic.BaseModel):
-    """Container for all data used by auto-qc."""
-
-    thresholds: Thresholds
-    data: typing.Dict[str, typing.Any]
 
 
 @dataclasses.dataclass(frozen=True)

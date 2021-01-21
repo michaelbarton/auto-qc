@@ -11,10 +11,8 @@ def _create_auto_qc(
 ) -> object.AutoQC:
     """Helper function to create an auto-qc object."""
     return object.AutoQC(
-        thresholds=object.Thresholds(
-            version=version.__version__,
-            thresholds=[{"name": "example_test", "fail_code": "ERR_1", "rule": rule}],
-        ),
+        version=version.__version__,
+        thresholds=[{"name": "example_test", "fail_code": "ERR_1", "rule": rule}],
         data=data,
     )
 

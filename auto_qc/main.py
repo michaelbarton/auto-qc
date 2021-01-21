@@ -17,7 +17,7 @@ def run(
     thresholds: typing.Dict[str, typing.Any], data: typing.Dict[str, typing.Any]
 ) -> object.AutoQCEvaluation:
 
-    auto_qc_eval = object.AutoQC(thresholds=thresholds, data=data)
+    auto_qc_eval = object.AutoQC(data=data, **thresholds)
     error.check_node_paths(auto_qc_eval)
     error.check_operators(auto_qc_eval)
     return qc.evaluate(auto_qc_eval)
