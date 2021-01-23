@@ -2,7 +2,7 @@
 
 ## SYNOPSIS
 
-`auto-qc` --data <ANALYSIS_FILE> --thesholds <THRESHOLD_FILE>
+`auto-qc` --data <ANALYSIS_FILE> --thresholds <THRESHOLD_FILE>
 
 ## OPTIONS
 
@@ -17,7 +17,7 @@
 
 ## SYNTAX
 
-### ANALYSIS FILE
+### DATA FILE
 
 The data file is a YAML dictionary with the keys `metadata` and `data`. Both
 these `metadata` and `data` fields are freeform dictionaries that can contain
@@ -41,15 +41,15 @@ An example data file is given below.
 ``` YAML
 ---
 bases:
-	contaminants: 1392000
-	initial: 1500000000
-	non_contaminants: 1498608000
+  contaminants: 1392000
+  initial: 1500000000
+  non_contaminants: 1498608000
 metrics:
-	percent_contamination: 0.1
+  percent_contamination: 0.1
 reads:
-	contaminants: 9280
-	initial: 10000000
-	non_contaminants: 9990720
+  contaminants: 9280
+  initial: 10000000
+  non_contaminants: 9990720
 ```
 
 ### THRESHOLD FILE
@@ -76,11 +76,11 @@ are defined as:
 
     * **fail_msg**: The message to return when this entry QC entry fails.
       Python string interpolation can be used to customise this message with
-      values from the analysis file.
+      values from the data file.
 
     * **pass_msg**: The message to return when this entry QC entry pass.
       Python string interpolation may also be used to customise this message
-      with values from the analysis file.
+      with values from the data file.
 
     * **fail_code**: An ID for the kind of failure identified if this entry
       does not pass QC. The list of failure codes is returned in the JSON
@@ -93,9 +93,9 @@ are defined as:
     comparison operators such as 'greater_than' or Boolean operators such as 'AND'. The
     list of allowed operators is described in the section below.
 
-  * **analysis value** - The value from the analysis file that should be
+  * **analysis value** - The value from the data file that should be
     tested. The colon ':' indicates that this a reference to a value in the
-    analysis file. The remainder of this string shows the path to the value
+    data file. The remainder of this string shows the path to the value
     to be tested.
 
   * **literal value** - A literal value that to compare with the reference
@@ -110,11 +110,12 @@ return FALSE then this will fail QC.
 ``` YAML
 version: 3.0.0
 thresholds:
-- - name: example test
-    pass_msg: No obvious contamination detected.
-    fail_msg: Contamination detected at {metrics/percent_contamination}%
-    fail_code: ERR00001
-    tags: ["contamination"]
+- name: example test
+  pass_msg: No obvious contamination detected.
+  fail_msg: Contamination detected at {metrics/percent_contamination}%
+  fail_code: ERR00001
+  tags: ["contamination"]
+  rule:
   - greater_than
   - :metrics/percent_contamination
   - 2
@@ -127,11 +128,12 @@ use arbitrarily to create more complex QC tests.
 ``` YAML
 version: 3.0.0
 thresholds:
-- - name: example test
-    pass_msg: No obvious contamination detected.
-    fail_msg: Contamination detected at {metrics/percent_contamination}% with {reads/contaminants} reads.
-    fail_code: ERR00001
-    tags: ["contamination"]
+- name: example test
+  pass_msg: No obvious contamination detected.
+  fail_msg: Contamination detected at {metrics/percent_contamination}% with {reads/contaminants} reads.
+  fail_code: ERR00001
+  tags: ["contamination"]
+  rule:
   - AND
   - - [less_than :metrics/percent_contamination, 2]
     - [less_than, :reads/contaminants, 1e6]
