@@ -6,7 +6,6 @@ env:
   TERM: xterm
 
 jobs:
-
   test:
     runs-on: ubuntu-latest
 

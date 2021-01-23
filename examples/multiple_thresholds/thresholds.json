@@ -1,21 +1,20 @@
 {
-    "thresholds": [
-        {
-            "fail_code": "FOO_FAILED",
-            "name": "check_foo",
-            "rule": [ "greater_than", ":foo", 10 ]
-        },
-        {
-            "fail_code": "BAR_FAILED",
-            "name": "check_bar",
-            "rule": [ "greater_than", ":bar", 0 ]
-        },
-        {
-            "fail_code": "BAZ_FAILED",
-            "name": "check_baz",
-            "rule": [ "less_than", ":baz", 20 ]
-        }
-    ],
-    "version": "3.0.0"
+  "thresholds": [
+    {
+      "fail_code": "FOO_FAILED",
+      "name": "check_foo",
+      "rule": ["greater_than", ":foo", 10]
+    },
+    {
+      "fail_code": "BAR_FAILED",
+      "name": "check_bar",
+      "rule": ["greater_than", ":bar", 0]
+    },
+    {
+      "fail_code": "BAZ_FAILED",
+      "name": "check_baz",
+      "rule": ["less_than", ":baz", 20]
+    }
+  ],
+  "version": "3.0.0"
 }
-

@@ -54,11 +54,13 @@ clean:
 
 fmt:
 	poetry run isort auto_qc test features bin
-	poetry run black auto_qc test bin features
+	poetry run black auto_qc test features bin
+	docker-compose run --rm prettier --write /mnt
 
 fmt_check:
-	poetry run isort --check --diff auto_qc tests features
-	poetry run black --check auto_qc test bin features
+	poetry run isort --check --diff auto_qc test features bin
+	poetry run black --check auto_qc test features bin
+	docker-compose run --rm prettier --check /mnt
 
 autofeature:
 	@clear && $(feature) || true
