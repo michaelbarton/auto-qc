@@ -8,6 +8,10 @@ env:
   VALIDATE_PYTHON_BLACK: false
   VALIDATE_PYTHON_ISORT: false
 
+  # Getting pylint to pass is a pain half the time.
+  # E.g. https://github.com/PyCQA/pylint/issues/3882
+  VALIDATE_PYTHON_PYLINT: false
+
 jobs:
   # Set the job key. The key is displayed as the job name
   # when a job name is not provided
