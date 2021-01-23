@@ -1,8 +1,8 @@
-# auto-qc(1) -- A command line tool for automated quality control
+# auto-qc(1) -- A tool for using business logic as data.
 
 ## SYNOPSIS
 
-`auto-qc` --data <ANALYSIS_FILE> --thresholds <THRESHOLD_FILE>
+`auto-qc` --data <DATA_FILE> --thresholds <THRESHOLD_FILE>
 
 ## OPTIONS
 
@@ -19,24 +19,9 @@
 
 ### DATA FILE
 
-The data file is a YAML dictionary with the keys `metadata` and `data`. Both
-these `metadata` and `data` fields are freeform dictionaries that can contain
-any subdictionary with any fields.
-
-The `metadata` field contains an additional data that is required to be stored
-about the QC data. The one mandatory field is required under `metadata` is
-`version/auto-qc`. The version number should match the version number of
-auto-qc being used. This version number is checked by auto-qc to prevent
-incompatible versions being used. [Semantic versioning][semver] is followed
-when defining version numbers for auto-qc.
-
-[semver]: http://semver.org
-
-The `data` field is used to store all the metrics values used to make the QC
-decision. There is no restriction on the dictionary structure or keys. Arrays
-are however not permitted.
-
-An example data file is given below.
+The data file is a YAML/JSON file containing all the metrics you want to use to
+make decisions. This file can be free form with any level of nesting, however
+lists are not allowed, only dictioaries. An example data file looks like:
 
 ```YAML
 ---
@@ -54,44 +39,49 @@ reads:
 
 ### THRESHOLD FILE
 
-The threshold file specifies the QC criteria for pass or fail. This is a YAML
-format dictionary contains two fields `metadata` and `thresholds`. These fields
-are defined as:
+The threshold file specifies the QC criteria or business logic to make a pass
+or fail based on the fields and metrics in the data above file. The threshold
+file is a YAML/JSON dictionary contains two fields `version` and `thresholds`.
+These fields are defined as:
 
-- **metadata** - This contains any metadata that you wish to associate with
-  your threshold file. The field `metadata/version/auto-qc` is mandatory and
-  is checked by auto-qc to determine if the QC threshold syntax matches that
-  of the version of auto-qc according to [semantic versioning][semver].
+- **version** - This field is checked by auto-qc to determine if the QC
+  threshold syntax matches that of the version of auto-qc being run according
+  to [semantic versioning][semver]. For the current version of auto-qc this
+  should be `3.0.0`. If the `version` field is out of date, e.g. `2.x`, then
+  auto-qc will fail.
 
-- **thresholds** - This field should contain an array of
-  [s-expressions][sexp]. Each s-expression is a list defining a single QC
-  threshold. The format of each threshold is:
+- **thresholds** - This field should contain a list of dictionaries, where each
+  dictionary is a business logic rule that should be evaluated against the
+  data. The threshold dictionaries are defined in the following section.
 
-  - **metadata dictionary** - A dictionary with metadata fields for the QC
-    threshold. The required fields are: `name`, `fail_msg` and `pass_msg`,
-    with an optional `tags' field. The description of each of these fields
-    are:
+### EVALUATION RULES
 
-    - **name**: A unique name describing the QC entry.
+Each evaluation rule dictionary contains:
 
-    - **fail_msg**: The message to return when this entry QC entry fails.
-      Python string interpolation can be used to customise this message with
-      values from the data file.
+- **name**: A unique name for this business rule.
 
-    - **pass_msg**: The message to return when this entry QC entry pass.
-      Python string interpolation may also be used to customise this message
-      with values from the data file.
+- **fail_msg**: A message to generate f this entry QC entry fails. Python
+  string interpolation can be used to customise this message with values from
+  the data file.
 
-    - **fail_code**: An ID for the kind of failure identified if this entry
-      does not pass QC. The list of failure codes is returned in the JSON
-      output with the `--json-output` flag.
+- **pass_msg**: A message to generate if this entry passes. Python string
+  interpolation may also be used to customise this message with values from the
+  data file.
 
-    - **tags**: A optional list of tags for the QC entry. These tags are
-      returned in the JSON output and can be used to organise the QC entries.
+- **fail_code**: An ID for the kind of failure identified if this entry
+  evaluates to fail. The list of failure codes is returned in the JSON output
+  with the flag.
+
+- **tags**: A optional list of tags for the QC entry. These tags are returned
+  in the JSON output if `--json-output` is used. These have no effect on the
+  evaluation of the tool, but can be useful for downstream processing of the
+  generated JSON output. E.g. process the failures and group by tags.
+
+- **rule**:
 
   - **operator** - An operator to test the QC value. This may be mathematical
-    comparison operators such as 'greater_than' or Boolean operators such as 'AND'. The
-    list of allowed operators is described in the section below.
+    comparison operators such as 'greater_than' or Boolean operators such as
+    'AND'. The list of allowed operators is described in the section below.
 
   - **analysis value** - The value from the data file that should be
     tested. The colon ':' indicates that this a reference to a value in the
@@ -101,8 +91,6 @@ are defined as:
   - **literal value** - A literal value that to compare with the reference
     value.
 
-[sexp]: https://en.wikipedia.org/wiki/S-expression
-
 An example of a simple threshold file with two QC tests is given below. In this
 example if both QC evaluations return TRUE then this will pass. If either
 return FALSE then this will fail QC.
@@ -111,7 +99,7 @@ return FALSE then this will fail QC.
 version: 3.0.0
 thresholds:
 - name: example test
-  pass_msg: No obvious contamination detected.
+  pass_msg: No contamination detected.
   fail_msg: Contamination detected at {metrics/percent_contamination}%
   fail_code: ERR00001
   tags: ["contamination"]
