@@ -1,10 +1,10 @@
-# auto-qc(1) -- A tool for using business logic as data.
+# auto-qc(1) -- A tool for storing business logic as data.
 
-## SYNOPSIS
+## Synopsis
 
 `auto-qc` --data <DATA_FILE> --thresholds <THRESHOLD_FILE>
 
-## OPTIONS
+## Command Line Options
 
 - `-d`, `--data` <DATA_FILE>: The path to the file containing input data to be
   checked.
@@ -15,46 +15,72 @@
 - `-j`, `--json-output`: Generate JSON output describing each of the threshold
   checks.
 
-## SYNTAX
+## Syntax
 
-### DATA FILE
+### Source Data File
 
-The data file is a YAML/JSON file containing all the metrics you want to use to
-make decisions. This file can be free form with any level of nesting, however
-lists are not allowed, only dictioaries. An example data file looks like:
+A data file is a YAML/JSON file containing all the data used to make decisions.
+This file should contain nested dictionaries. An example data file might look like:
 
 ```YAML
 ---
-bases:
-  contaminants: 1392000
-  initial: 1500000000
-  non_contaminants: 1498608000
-metrics:
-  percent_contamination: 0.1
-reads:
-  contaminants: 9280
-  initial: 10000000
-  non_contaminants: 9990720
+manufacturing:
+	defective_parts_per_million_per_month: 7
+	mean_throughput_per_machine_per_month: 1462.8
+customer:
+	percent_on_time_delivery: 97.3
+	returns_per_month: 31
 ```
 
-### THRESHOLD FILE
+### Source Threshold File
 
-The threshold file specifies the QC criteria or business logic to make a pass
-or fail based on the fields and metrics in the data above file. The threshold
-file is a YAML/JSON dictionary contains two fields `version` and `thresholds`.
-These fields are defined as:
+A threshold file specifies the QC criteria or business logic to make a pass or
+fail based on the fields and metrics in the data above file. The threshold file
+is a YAML/JSON dictionary contains two fields `version` and `thresholds`. These
+fields are defined as:
 
 - **version** - This field is checked by auto-qc to determine if the QC
-  threshold syntax matches that of the version of auto-qc being run according
-  to [semantic versioning][semver]. For the current version of auto-qc this
-  should be `3.0.0`. If the `version` field is out of date, e.g. `2.x`, then
-  auto-qc will fail.
+  threshold syntax matches that of the version of auto-qc being run. For the
+  current version of auto-qc this should be `3.0.0`. If the `version` field is
+  out of date, e.g. `2.x`, then auto-qc will immediately fail.
 
 - **thresholds** - This field should contain a list of dictionaries, where each
-  dictionary is a business logic rule that should be evaluated against the
-  data. The threshold dictionaries are defined in the following section.
+  entry defines a rule that should be evaluated against the metrics in the data
+  file. The threshold dictionaries are defined as follows in the next section.
 
-### EVALUATION RULES
+### Evaluated Rules
+
+Use the example data above, a simple threshold file with two business rules
+might look like:
+
+```
+version: 3.0.0
+thresholds:
+
+- name: Dropping throughput rate
+  fail_code: ERR_001
+  rule:
+	- LESS_THAN
+  - :manufacturing/mean_throughput_per_machine_per_month
+  - 10000
+
+- name: Increasing defects
+  fail_code: ERR_002
+  rule:
+	- OR
+  - [GREATER_THAN, :manufacturing/defective_parts_per_million_per_month, 100]
+  - [GREATER_THAN, :customer/returns_per_month, 10]
+```
+
+The first rule 'Dropping throughput rate' checks the value in the data file for
+the path `:manufacturing/mean_throughput_per_machine_per_month` ensures it's
+greater than `10000`.
+
+The second rule 'Increasing defects' is a compound rule joined by an `OR`
+operator, and checks two metrics in the data file to see if either are above a
+given threshold file. This second rule illustates that all business rules are
+lists beginning with an operator, and can be arbrarily nested. The full list of
+available operators is given below.
 
 Each evaluation rule dictionary contains:
 
@@ -91,42 +117,6 @@ Each evaluation rule dictionary contains:
   - **literal value** - A literal value that to compare with the reference
     value.
 
-An example of a simple threshold file with two QC tests is given below. In this
-example if both QC evaluations return TRUE then this will pass. If either
-return FALSE then this will fail QC.
-
-```YAML
-version: 3.0.0
-thresholds:
-- name: example test
-  pass_msg: No contamination detected.
-  fail_msg: Contamination detected at {metrics/percent_contamination}%
-  fail_code: ERR00001
-  tags: ["contamination"]
-  rule:
-  - greater_than
-  - :metrics/percent_contamination
-  - 2
-```
-
-A more complex example uses `NOT` and `AND` to create a QC threshold that
-fails only when both of the nested thresholds fail. Boolean operators can be
-use arbitrarily to create more complex QC tests.
-
-```YAML
-version: 3.0.0
-thresholds:
-- name: example test
-  pass_msg: No obvious contamination detected.
-  fail_msg: Contamination detected at {metrics/percent_contamination}% with {reads/contaminants} reads.
-  fail_code: ERR00001
-  tags: ["contamination"]
-  rule:
-  - AND
-  - - [less_than :metrics/percent_contamination, 2]
-    - [less_than, :reads/contaminants, 1e6]
-```
-
 ### AVAILABLE OPERATORS
 
 **equals** / **not_equals** - Test whether two values are equal or not.
@@ -137,8 +127,8 @@ thresholds:
 - Low Input DNA
 ```
 
-**greater_than** / **less_than** / **greater_equal_than** / **less_equal_than** - Test whether one
-numeric value is greater/smaller than another.
+**greater_than** / **less_than** / **greater_equal_than** / **less_equal_than** -
+Test whether one numeric value is greater/smaller than another.
 
 ```YAML
 - greater_than
