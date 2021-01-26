@@ -69,4 +69,6 @@ def cli(data: str, thresholds: str, json_output: bool, manual: bool) -> None:
         stderr.print(f"[red]Errors[/red]:\n{err}")
         sys.exit(1)
 
+    exit_code = 0 if evaluation.is_pass else 1
     print(evaluation.to_evaluation_string(json_output))
+    sys.exit(exit_code)
