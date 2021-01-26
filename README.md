@@ -96,7 +96,7 @@ thresholds:
 
 Auto QC can be used in python code as follows:
 
-```python
+````python
 
 from auto_qc import main
 
@@ -115,7 +115,7 @@ evaluation = main.run(thresholds, data)
 A data file is a YAML/JSON file containing all the data used to make decisions.
 This file should contain nested dictionaries. An example data file might look like:
 
-```YAML
+```yaml
 ---
 manufacturing:
 	defective_parts_per_million_per_month: 7
@@ -123,7 +123,7 @@ manufacturing:
 customer:
 	percent_on_time_delivery: 97.3
 	returns_per_month: 31
-```
+````
 
 ### Source Threshold File
 
@@ -146,7 +146,7 @@ fields are defined as:
 Use the example data above, a simple threshold file with two business rules
 might look like:
 
-```
+```yaml
 version: 3.0.0
 thresholds:
 
@@ -214,7 +214,7 @@ Each evaluation rule dictionary contains:
 
 **equals** / **not_equals** - Test whether two values are equal or not.
 
-```YAML
+```yaml
 - equals
 - :run_metadata/protocol
 - Low Input DNA
@@ -223,7 +223,7 @@ Each evaluation rule dictionary contains:
 **greater_than** / **less_than** / **greater_equal_than** / **less_equal_than** -
 Test whether one numeric value is greater/smaller than another.
 
-```YAML
+```yaml
 - greater_than
 - :human_contamination/metrics/percent_contamination
 - 5
@@ -233,35 +233,31 @@ Test whether one numeric value is greater/smaller than another.
 that metrics can be nested. For instance here, the two arguments to the **and**
 operator are themselves thresholds.
 
-```YAML
+```yaml
 - and
--
-  - greater_than
+- - greater_than
   - :cat_contamination/metrics/percent_contamination
   - 5
--
-  - greater_than
+- - greater_than
   - :dog_contamination/metrics/percent_contamination
   - 5
 ```
 
 **or** - Test whether any values are true.
 
-```YAML
+```yaml
 - or
--
-  - greater_than
+- - greater_than
   - :cat_contamination/metrics/percent_contamination
   - 5
--
-  - greater_than
+- - greater_than
   - :dog_contamination/metrics/percent_contamination
   - 5
 ```
 
 **not** - Flips the Boolean value
 
-```YAML
+```yaml
 - not
 - :cat_contamination/is_contaminated
 ```
@@ -269,11 +265,10 @@ operator are themselves thresholds.
 **is_in** / **is_not_in** - Test whether a value is in a list of values. Note
 that the list of values must begin with the **list** operator.
 
-```YAML
+```yaml
 - is_in
 - :cat_contamination/name_of_cat
--
-  - list
+- - list
   - "Chase No Face"
   - "Colonel Meow"
   - "Felicette"
