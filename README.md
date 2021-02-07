@@ -1,4 +1,4 @@
-# auto-qc -- A python tool for storing business logic as data.
+# auto-qc - A python tool for storing business logic as data.
 
 ## Quick Start
 
