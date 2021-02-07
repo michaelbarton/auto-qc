@@ -102,7 +102,7 @@ thresholds:
 
 Auto QC can be used in python code as follows:
 
-````python
+```python
 from auto_qc import main
 evaluation = main.run(thresholds, data)
 ```
@@ -122,7 +122,7 @@ manufacturing:
 customer:
 	percent_on_time_delivery: 97.3
 	returns_per_month: 31
-````
+```
 
 ### Source Threshold File
 
@@ -148,20 +148,23 @@ might look like:
 ```yaml
 version: 3.0.0
 thresholds:
+  - name: Dropping throughput rate
+    fail_code: ERR_001
+    rule:
+      - LESS_THAN
+      - &manufacturing/mean_throughput_per_machine_per_month
+      - 10000
 
-- name: Dropping throughput rate
-  fail_code: ERR_001
-  rule:
-  - LESS_THAN
-  - &manufacturing/mean_throughput_per_machine_per_month
-  - 10000
-
-- name: Increasing defects
-  fail_code: ERR_002
-  rule:
-  - OR
-  - [GREATER_THAN, &manufacturing/defective_parts_per_million_per_month, 100]
-  - [GREATER_THAN, &customer/returns_per_month, 10]
+  - name: Increasing defects
+    fail_code: ERR_002
+    rule:
+      - OR
+      - [
+          GREATER_THAN,
+          &manufacturing/defective_parts_per_million_per_month ,
+          100,
+        ]
+      - [GREATER_THAN, &customer/returns_per_month , 10]
 ```
 
 The first rule 'Dropping throughput rate' checks the value in the data file for
@@ -336,4 +339,3 @@ Michael Barton <mail@michaelbarton.me.uk>
 - 0.2.1 - Tue 20 May 2014
 - 0.2.0 - Mon 19 May 2014
 - 0.1.0 - Thu 15 May 2014
-
