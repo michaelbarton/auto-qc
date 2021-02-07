@@ -117,11 +117,11 @@ This file should contain nested dictionaries. An example data file might look li
 ```yaml
 ---
 manufacturing:
-	defective_parts_per_million_per_month: 7
-	mean_throughput_per_machine_per_month: 1462.8
+  defective_parts_per_million_per_month: 7
+  mean_throughput_per_machine_per_month: 1462.8
 customer:
-	percent_on_time_delivery: 97.3
-	returns_per_month: 31
+  percent_on_time_delivery: 97.3
+  returns_per_month: 31
 ```
 
 ### Source Threshold File
