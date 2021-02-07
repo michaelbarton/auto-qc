@@ -9,19 +9,25 @@ auto-qc --data <DATA_FILE> --thresholds <THRESHOLD_FILE>
 
 ## Motivation
 
-Auto QC is designed for business rules where process failures can be determined
-with well-understood thresholds, such as "defects per month > 10", but change
-often enough that hard-coding them into software with `if` statements would
-require regular pull requests to adapt them according to moving requirements.
+Auto QC is designed for business logic where process failures can be determined
+with clear thresholds rules, such as "defects per month > 10", but change often
+enough that hard-coding them into software with `if/else` or `case` statements
+would require regular changes tot he code to adapt them according to moving
+requirements.
 
 Auto QC solves this by providing a JSON/YAML data format for the business
 thresholds, which are evaluated against metrics stored in separate file. If any
-of the business thresholds evaluate to false, auto QC will report the
-corresponding error code associated with the failing threshold rule.
+of the threshold rules evaluate to `False`, auto QC will report the
+corresponding error code associated with the failing rule.
 
-### Simple example
+## Simple Example
 
-Assume two metrics for a widget looks like:
+![Auto QC Simple Example](img/simple_example.svg "Example Auto QC Files")
+
+### Explanation
+
+Assume metrics for a widget looks like the data below. This kind of data may be
+captured during the manufacturing process, or from data aggregated from logs.
 
 ```json
 {
@@ -30,26 +36,27 @@ Assume two metrics for a widget looks like:
 }
 ```
 
-And the threshold rules for this widget look like:
+And the threshold rules that the business cares about look like this:
 
 ```yaml
 version: 3.0.0
 thresholds:
 - fail_code: "FOO_FAILURE",
-  rule: ["greater_than", ":foo", 10]
+  rule: ["greater_than", "&foo", 10]
 - fail_code: "BAR_FAILURE",
-  rule: ["greater_than", ":bar", 0]
+  rule: ["greater_than", "&bar", 0]
 ```
 
 Running this with `auto-qc` would report the error `BAR_FAILURE`, because the
 value for `bar` in the data file is -2, while the thresholds includes a rule
-that the pointer to the value for `:bar` should not be below 0. Every rule
-defined in the `thresholds` field should evaluate to true. If any evaluate to
-`false` then auto QC will return the associated value in the `fail_code` field.
+that the pointer to the value for `&bar` should not be below 0. Every rule
+defined in the `thresholds` field should evaluate to `True`. If any evaluate to
+`False` then auto QC will return the associated string in the `fail_code`
+field.
 
 ### More-complex example
 
-More complex examples can be built using boolean expressions such as `AND` or
+More complex examples can be built using Boolean expressions such as `AND` or
 `OR`. Assume that the thresholds might depend on the type of widget being
 manufactured, where 'cheap' widgets can have more lax thresholds. This can be
 handled by encoding the widget type in the data file.
@@ -63,22 +70,22 @@ handled by encoding the widget type in the data file.
 ```
 
 Then the thresholds file can use a mixture of `OR` and `AND` expressions to
-test the value of `:bar` based on the value of the `:widget_type` field.
+test the value of `&bar` based on the value of the `&widget_type` field.
 
 ```yaml
 version: 3.0.0
 thresholds:
 - fail_code: "FOO_FAILURE",
-  rule: ["greater_than", ":foo", 10]
+  rule: ["greater_than", "&foo", 10]
 - fail_code: "BAR_FAILURE",
   rule:
   - OR
   - - AND
-    - [equals ":widget_type", "cheap"]
-    - ["greater_than", ":bar", -5]
+    - [equals "&widget_type", "cheap"]
+    - ["greater_than", "&bar", -5]
   - - AND
-    - [equals ":widget_type", "expensive"]
-    - ["greater_than", ":bar", 2]
+    - [equals "&widget_type", "expensive"]
+    - ["greater_than", "&bar", 2]
 ```
 
 ## Command Line Options
@@ -89,24 +96,16 @@ thresholds:
 - `-t`, `--thresholds` <THRESHOLD_FILE>: The path to the file containing the
   pass/fail thresholds.
 
-- `-j`, `--json-output`: Generate JSON output describing each of the threshold
-  checks.
+- `-j`, `--json-output`: Generate output as JSON.
 
 ## Python API
 
 Auto QC can be used in python code as follows:
 
 ````python
-
 from auto_qc import main
-
 evaluation = main.run(thresholds, data)
-
-    auto_qc_eval = object.AutoQC(data=data, **thresholds)
-    error.check_node_paths(auto_qc_eval) error.check_operators(auto_qc_eval)
-    return qc.evaluate(auto_qc_eval)
-
-
+```
 
 ## File Syntax
 
@@ -153,33 +152,33 @@ thresholds:
 - name: Dropping throughput rate
   fail_code: ERR_001
   rule:
-	- LESS_THAN
-  - :manufacturing/mean_throughput_per_machine_per_month
+  - LESS_THAN
+  - &manufacturing/mean_throughput_per_machine_per_month
   - 10000
 
 - name: Increasing defects
   fail_code: ERR_002
   rule:
-	- OR
-  - [GREATER_THAN, :manufacturing/defective_parts_per_million_per_month, 100]
-  - [GREATER_THAN, :customer/returns_per_month, 10]
+  - OR
+  - [GREATER_THAN, &manufacturing/defective_parts_per_million_per_month, 100]
+  - [GREATER_THAN, &customer/returns_per_month, 10]
 ```
 
 The first rule 'Dropping throughput rate' checks the value in the data file for
-the path `:manufacturing/mean_throughput_per_machine_per_month` ensures it's
+the path `&manufacturing/mean_throughput_per_machine_per_month` ensures it's
 greater than `10000`.
 
 The second rule 'Increasing defects' is a compound rule joined by an `OR`
 operator, and checks two metrics in the data file to see if either are above a
-given threshold file. This second rule illustates that all business rules are
-lists beginning with an operator, and can be arbrarily nested. The full list of
+given threshold file. This second rule illustrates that all business rules are
+lists beginning with an operator, and can be arbitrarily nested. The full list of
 available operators is given below.
 
 Each evaluation rule dictionary contains:
 
 - **name**: A unique name for this business rule.
 
-- **fail_msg**: A message to generate f this entry QC entry fails. Python
+- **fail_msg**: A message to generate if this entry QC entry fails. Python
   string interpolation can be used to customise this message with values from
   the data file.
 
@@ -203,9 +202,9 @@ Each evaluation rule dictionary contains:
     'AND'. The list of allowed operators is described in the section below.
 
   - **analysis value** - The value from the data file that should be
-    tested. The colon ':' indicates that this a reference to a value in the
-    data file. The remainder of this string shows the path to the value
-    to be tested.
+    tested. The ampersand '&' indicates that this a pointer to a value in the
+    data file. The remainder of this string is the JSON path to the value
+    to be evaluated against.
 
   - **literal value** - A literal value that to compare with the reference
     value.
@@ -216,7 +215,7 @@ Each evaluation rule dictionary contains:
 
 ```yaml
 - equals
-- :run_metadata/protocol
+- &run_metadata/protocol
 - Low Input DNA
 ```
 
@@ -225,7 +224,7 @@ Test whether one numeric value is greater/smaller than another.
 
 ```yaml
 - greater_than
-- :human_contamination/metrics/percent_contamination
+- &human_contamination/metrics/percent_contamination
 - 5
 ```
 
@@ -236,10 +235,10 @@ operator are themselves thresholds.
 ```yaml
 - and
 - - greater_than
-  - :cat_contamination/metrics/percent_contamination
+  - &cat_contamination/metrics/percent_contamination
   - 5
 - - greater_than
-  - :dog_contamination/metrics/percent_contamination
+  - &dog_contamination/metrics/percent_contamination
   - 5
 ```
 
@@ -248,10 +247,10 @@ operator are themselves thresholds.
 ```yaml
 - or
 - - greater_than
-  - :cat_contamination/metrics/percent_contamination
+  - &cat_contamination/metrics/percent_contamination
   - 5
 - - greater_than
-  - :dog_contamination/metrics/percent_contamination
+  - &dog_contamination/metrics/percent_contamination
   - 5
 ```
 
@@ -259,7 +258,7 @@ operator are themselves thresholds.
 
 ```yaml
 - not
-- :cat_contamination/is_contaminated
+- &cat_contamination/is_contaminated
 ```
 
 **is_in** / **is_not_in** - Test whether a value is in a list of values. Note
@@ -267,7 +266,7 @@ that the list of values must begin with the **list** operator.
 
 ```yaml
 - is_in
-- :cat_contamination/name_of_cat
+- &cat_contamination/name_of_cat
 - - list
   - "Chase No Face"
   - "Colonel Meow"
@@ -277,22 +276,6 @@ that the list of values must begin with the **list** operator.
   - "Tiddles"
   - "Wilberforce"
 ```
-
-## AUTHOR
-
-Michael Barton <mail@michaelbarton.me.uk>
-
-## HISTORY
-
-- 3.0.0 - Mon 11 Jan 2021
-- 2.0.0 - Mon 20 Jun 2016
-- 1.1.0 - Mon 27 Apr 2015
-- 1.0.0 - Fri 15 Aug 2014
-- 0.2.1 - Tue 20 May 2014
-- 0.2.0 - Mon 19 May 2014
-- 0.1.0 - Thu 15 May 2014
-
-For the full user manual see [MANUAL.md](./auto_qc/MANUAL.md).
 
 ## Building and Testing
 
@@ -323,20 +306,34 @@ poetry run bump2version major  # 3.1.0 → 4.0.0
 
 ## Licence
 
-auto-qc Copyright (c) 2017, The Regents of the University of California,
+auto-qc Copyright (c) 2017-2021, The Regents of the University of California,
 through Lawrence Berkeley National Laboratory (subject to receipt of any
 required approvals from the U.S. Dept. of Energy). All rights reserved.
 
 If you have questions about your rights to use or distribute this software,
-please contact Berkeley Lab's Innovation and Partnerships Office at
-IPO@lbl.gov referring to " auto-qc v2 (2017-031)."
+please contact Berkeley Lab's Innovation and Partnerships Office at IPO@lbl.gov
+referring to "auto-qc v2 (2017-031)."
 
-NOTICE. This software was developed under funding from the U.S. Department
-of Energy. As such, the U.S. Government has been granted for itself and
-others acting on its behalf a paid-up, nonexclusive, irrevocable, worldwide
-license in the Software to reproduce, prepare derivative works, and perform
-publicly and display publicly. The U.S. Government is granted for itself
-and others acting on its behalf a paid-up, nonexclusive, irrevocable,
-worldwide license in the Software to reproduce, prepare derivative works,
-distribute copies to the public, perform publicly and display publicly, and
-to permit others to do so.
+NOTICE. This software was developed under funding from the U.S. Department of
+Energy. As such, the U.S. Government has been granted for itself and others
+acting on its behalf a paid-up, nonexclusive, irrevocable, worldwide license in
+the Software to reproduce, prepare derivative works, and perform publicly and
+display publicly. The U.S. Government is granted for itself and others acting
+on its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the
+Software to reproduce, prepare derivative works, distribute copies to the
+public, perform publicly and display publicly, and to permit others to do so.
+
+## AUTHOR
+
+Michael Barton <mail@michaelbarton.me.uk>
+
+## HISTORY
+
+- 3.0.0 - Mon 08 Feb 2021
+- 2.0.0 - Mon 20 Jun 2016
+- 1.1.0 - Mon 27 Apr 2015
+- 1.0.0 - Fri 15 Aug 2014
+- 0.2.1 - Tue 20 May 2014
+- 0.2.0 - Mon 19 May 2014
+- 0.1.0 - Thu 15 May 2014
+
