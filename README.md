@@ -1,58 +1,82 @@
-# auto-qc - A python tool for storing business logic as data.
+Tag Line: quality control as configuration language
+
+TODO: Logo
+
+TODO: GIF. Perhaps: https://github.com/johnkerl/miller
+
+TODO: Code example
 
 ## Quick Start
 
-```console
-pip3 install auto-qc
-auto-qc --data <DATA_FILE> --thresholds <THRESHOLD_FILE>
-```
-
-## Motivation
-
-Auto QC is designed for business logic where process failures can be determined
-with clear thresholds rules, such as "defects per month > 10", but change often
-enough that hard-coding them into software with `if/else` or `case` statements
-would require regular changes to the code to adapt them according to moving
-requirements.
-
-Auto QC solves this by providing a JSON/YAML data format for the business
-thresholds, which are evaluated against metrics stored in separate file. If any
-of the threshold rules evaluate to `False`, auto QC will report the
-corresponding error code associated with the failing rule.
-
-## Simple Example
-
-![Auto QC Simple Example](img/simple_example.svg "Example Auto QC Files")
-
-### Explanation
-
-Assume metrics for a widget looks like the data below. This kind of data may be
-captured during the manufacturing process, or from data aggregated from logs.
+Create a JSON file with data about a product:
 
 ```json
 {
-  "foo": 14.2,
-  "bar": -2
+  "height": 14.2,
+  "width": 9.3
 }
 ```
 
-And the threshold rules that the business cares about look like this:
+Write a list of quality rules about the product to a YAML file:
 
 ```yaml
-version: 3.0.0
-thresholds:
-  - fail_code: "FOO_FAILURE"
-    rule: ["greater_than", "&foo", 10]
-  - fail_code: "BAR_FAILURE"
-    rule: ["greater_than", "&bar", 0]
+quality_control:
+  - code: "MINIMUM_HEIGHT"
+    require: ["greater_than", ":height", 10]
+  - code: "MINIMUM_WIDTH"
+    require: ["greater_than", ":width", 10]
+version: 3
 ```
 
-Running this with `auto-qc` would report the error `BAR_FAILURE`, because the
-value for `bar` in the data file is -2, while the thresholds includes a rule
-that the pointer to the value for `&bar` should not be below 0. Every rule
-defined in the `thresholds` field should evaluate to `True`. If any evaluate to
-`False` then auto QC will return the associated string in the `fail_code`
-field.
+The run `auto-qc` to see if the product passes quality control.
+
+```console
+$ auto-qc --data=data.json --thresholds=qc_rules.yml
+
+FAIL: MINIMUM_WIDTH
+```
+
+### Installation
+
+```console
+pip3 install auto-qc
+```
+
+## What's the point?
+
+During data processing you often quality check source data to ensure it's good
+enough. If the input data is bad you want the code to exit or flag the data
+before trying to proceed or before passing onto downstream users. The most
+common way of doing this when creating applications is using `if` and `case`
+statements and then raising an exception or skipping data.
+
+Auto QC is an alternative to `if` statments, intead creating quality checks as
+data in YAML. This reduces complexity because the QC checks can be maintained
+outside the application in configuration files. New QC thresholds can be tested
+without having to create a pull request or build a new a Docker image. Instead
+the QC are updated as simple lists in a configuration file.
+
+The first version of auto-qc was prototyped at the Joint Genome Institute. It
+has been used in production since 2014 to quality check and flag issues in the
+thousands of sequenced microbial genomes.
+
+## How to write QC rules
+
+The `auto-qc` tool accepts two input files: a JSON containing your data, and
+YAML QC rules file the quality control thresholds. The JSON data can be in any
+format. A small example for the QC rules YAML looks like:
+
+```yaml
+quality_control:
+  - code: "MINIMUM_LENGTH"
+    require: ["greater_equal_than", ":length", 10]
+version: 3
+```
+
+This specifies that the length variable should be greater or equal to 10. There
+should be a corresponding "length" key in the JSON value. The tool will look up
+this value and check if it meets the threashold. If not the code
+`MINIMUM_LENGTH` is reported as the failure cause.
 
 ### More-complex example
 
