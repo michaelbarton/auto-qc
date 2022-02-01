@@ -1,9 +1,0 @@
-#!/bin/bash
-
-set -o errexit
-set -o pipefail
-
-./script/bootstrap
-./script/doc
-
-man ./man/auto-qc.1

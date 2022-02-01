@@ -1,19 +1,14 @@
 #!/usr/bin/env python
 
-import os, sys, pkg_resources
+import os
+import sys
+
+import pkg_resources
+
 path = os.path.abspath(pkg_resources.resource_filename(__name__, '..'))
 sys.path.insert(1, path)
 
-import argparse
-parser = argparse.ArgumentParser(
-           description='Calculates if sample passes based on QC thresholds')
-parser.add_argument('--analysis-file',  '-a', dest='analysis_file',  required=True)
-parser.add_argument('--threshold-file', '-t', dest='threshold_file', required=True)
+# This import has to come after the paths are setup above
+from auto_qc import main
 
-group = parser.add_mutually_exclusive_group(required=False)
-group.add_argument('--json-output', '-j', dest='json', action='store_true')
-
-args = vars(parser.parse_args())
-
-from auto_qc.main import run
-run(args)
+main.cli()

@@ -1,4 +1,4 @@
-version := $(shell python setup.py --version)
+version = 3.0.0
 name    := auto_qc
 
 HLT=\033[0;34m
@@ -13,7 +13,8 @@ The following commands are available for building and testing:
   $(HLT)make bootstrap$(NC)   Installs python and ruby dependencies locally
   $(HLT)make test$(NC)        Runs all unit tests defined in the test/
   $(HLT)make feature$(NC)     Runs all feature tests defined in the features/
-  $(HLT)make doc$(NC)         Builds man page and html documentation in doc/
+  $(HLT)make fmt$(NC)         Runs black and isort code formatting
+  $(HLT)make fmt_check$(NC)   Checks code is correctly formatted
   $(HLT)make build$(NC)       Builds a python package of auto_qc in dist/
 
 
@@ -23,6 +24,8 @@ export HELP
 help:
 	clear && echo "$$HELP"
 
+all: test feature build
+
 #################################################
 #
 # Build
@@ -31,38 +34,33 @@ help:
 
 dist    := dist/$(name)-$(version).tar.gz
 
-objs = \
-       $(shell find auto_qc) \
-       requirements/default.txt \
-       setup.py \
-       MANIFEST.in \
-       man/auto-qc.1 \
-       tox.ini
+objs = $(shell find auto_qc -type f ! -name "*.pyc") pyproject.toml
 
 build: $(dist)
 
 $(dist): $(objs)
-	tox -e build
+	poetry build
 
 clean:
 	rm -f dist/*
 
-#################################################
-#
-# Documentation
-#
-#################################################
-
-doc: man/auto-qc.1
-
-man/%: man/%.mkd
-	bundle exec ronn $<
 
 #################################################
 #
 # Unit and Feature tests
 #
 #################################################
+
+
+fmt:
+	poetry run isort auto_qc test features bin
+	poetry run black auto_qc test features bin
+	docker-compose run --rm prettier --write /mnt
+
+fmt_check:
+	poetry run isort --check --diff auto_qc test features bin
+	poetry run black --check auto_qc test features bin
+	docker-compose run --rm prettier --check /mnt
 
 autofeature:
 	@clear && $(feature) || true
@@ -75,7 +73,7 @@ autofeature:
 feature:
 	@$(feature)
 
-autotest:
+autotest: fmt
 	@clear && $(test) || true
 	@fswatch \
 		--exclude 'pyc' \
@@ -83,12 +81,12 @@ autotest:
 		--one-per-batch ./test \
 		| xargs -n 1 -I {} bash -c "$(test)"
 
-test:
+test: fmt
 	@$(test)
 
 # Commands for running tests and features
-feature = tox -e feature $(FLAGS)
-test    = clear && tox -e unit
+feature = poetry run behave --stop
+test    = clear && poetry run nosetests --rednose
 
 #################################################
 #
@@ -96,14 +94,7 @@ test    = clear && tox -e unit
 #
 #################################################
 
-bootstrap: Gemfile.lock .tox
+bootstrap:
+	poetry install
 
-.tox: requirements/default.txt requirements/development.txt
-	tox --notest
-	@touch $@
-
-Gemfile.lock: Gemfile
-	mkdir -p log
-	bundle install --path vendor/ruby 2>&1 > log/gem.txt
-
-.PHONY: bootstrap test feature autotest autofeature doc
+.PHONY: bootstrap test feature autotest autofeature
