@@ -1,14 +1,14 @@
-Tag Line: quality control as configuration language
+# auto-qc - quality control as config file
 
 TODO: Logo
 
 TODO: GIF. Perhaps: https://github.com/johnkerl/miller
 
-TODO: Code example
+TODO: python Code example, with generated output dictionary
 
 ## Quick Start
 
-Create a JSON file with data about a product:
+Create a JSON file with data:
 
 ```json
 {
@@ -17,18 +17,18 @@ Create a JSON file with data about a product:
 }
 ```
 
-Write a list of quality rules about the product to a YAML file:
+Write a list of quality rules in a YAML file:
 
 ```yaml
 quality_control:
-  - code: "MINIMUM_HEIGHT"
+  - id: "MINIMUM_HEIGHT"
     require: ["greater_than", ":height", 10]
-  - code: "MINIMUM_WIDTH"
+  - id: "MINIMUM_WIDTH"
     require: ["greater_than", ":width", 10]
 version: 3
 ```
 
-The run `auto-qc` to see if the product passes quality control.
+Run `auto-qc` to see if the product passes quality control.
 
 ```console
 $ auto-qc --data=data.json --thresholds=qc_rules.yml
@@ -44,73 +44,137 @@ pip3 install auto-qc
 
 ## What's the point?
 
-During data processing you often quality check source data to ensure it's good
-enough. If the input data is bad you want the code to exit or flag the data
-before trying to proceed or before passing onto downstream users. The most
-common way of doing this when creating applications is using `if` and `case`
-statements and then raising an exception or skipping data.
+Before processing data you often need to check the quality of the input data.
+If the data is bad you want the code to exit or flag a failure the data before
+trying to proceed, or before passing data onto downstream users. The most
+common way of doing this in applications is using `if` and `case` statements
+and then raising an exception or skipping bad data.
 
 Auto QC is an alternative to `if` statments, intead creating quality checks as
-data in YAML. This reduces complexity because the QC checks can be maintained
+lists in YAML. This reduces complexity because the QC checks can be maintained
 outside the application in configuration files. New QC thresholds can be tested
 without having to create a pull request or build a new a Docker image. Instead
-the QC are updated as simple lists in a configuration file.
+quality control rules are updated by changing lists in a configuration file
+outside the application.
 
 The first version of auto-qc was prototyped at the Joint Genome Institute. It
 has been used in production since 2014 to quality check and flag issues in the
-thousands of sequenced microbial genomes.
+thousands of sequenced microbial genomes every year.
 
-## How to write QC rules
+## How to create a QC rules file
 
-The `auto-qc` tool accepts two input files: a JSON containing your data, and
-YAML QC rules file the quality control thresholds. The JSON data can be in any
-format. A small example for the QC rules YAML looks like:
+The `auto-qc` tool accepts two input files: a JSON file containing your data,
+and a YAML file containing the quality control requirements. The reference JSON
+data can be in any format. A small example for the QC rules YAML looks like:
 
 ```yaml
 quality_control:
-  - code: "MINIMUM_LENGTH"
+  - id: "MINIMUM_LENGTH"
     require: ["greater_equal_than", ":length", 10]
 version: 3
 ```
 
 This specifies that the length variable should be greater or equal to 10. There
 should be a corresponding "length" key in the JSON value. The tool will look up
-this value and check if it meets the threashold. If not the code
+this value and check if it meets the threashold. If not the id
 `MINIMUM_LENGTH` is reported as the failure cause.
 
-### More-complex example
+### Creating more complex QC rules
 
-More complex examples can be built using Boolean expressions such as `AND` or
-`OR`. Assume that the thresholds might depend on the type of widget being
-manufactured, where cheaper widgets could have more lax thresholds. This can be
-handled by encoding the widget type in the data file.
+More complex examples can be built by combining multiple requirements using
+Boolean expressions such as `AND` or `OR`. The below example assumes the
+thresholds depend on the type of board being manufactured. Cheaper boards
+have more lax quality thresholds. This can be handled by encoding the board
+type in the data file.
 
 ```json
 {
-  "widget_type": "cheap",
-  "foo": 14.2,
-  "bar": -2
+  "id": "GSV-00478-9",
+  "lot": 10742,
+  "board_type": "cheap",
+  "specs": {
+    "density": 14.2,
+    "defects_per_metre": 0.02
+  }
 }
 ```
 
-Then the thresholds file can use a mixture of `OR` and `AND` expressions to
-test the value of `&bar` based on the value of the `&widget_type` field.
+The thresholds file uses a mixture of `OR` and `AND` expressions to test the
+value of `:bar` based on the value of the `:widget_type` field.
 
-```yaml
-version: 3.0.0
+```yaml qc_threshold_example
 thresholds:
-  - fail_code: "FOO_FAILURE"
-    rule: ["greater_than", "&foo", 10]
-  - fail_code: "BAR_FAILURE"
-    rule:
+
+  - comment: "The number of defects allowed per sq.m. depends on board type."
+    id: "BAR_FAILURE"
+    require:
       - OR
       - - AND
-        - [equals "&widget_type", "cheap"]
-        - ["greater_than", "&bar", -5]
+        - [equals, ":board_type", "cheap"]
+        - ["less_than", ":specs/defects_per_metre", 0.1]
       - - AND
-        - [equals "&widget_type", "expensive"]
-        - ["greater_than", "&bar", 2]
+        - [equals, ":board_type", "expensive"]
+        - ["less_than", ":specs/defects_per_metre", 0.01]
+
+  - comment: "Fail if an unknow board type is given."
+  - id: "UNKNOWN_TYPE_FAILURE"
+    require: [is_in, ":board_type" [list, "cheap", "expensive"]]
+
+version: 3
 ```
+
+The last check here catches data validation errors: if the board type is
+neither cheap or expensive. Though it is possible this tool is not designed for
+data format validation and enforcement at the database level or in the
+application with tools like [JSON Schema][], [cue][], and [pydantic][] are
+better suited.
+
+[JSON Schema]: https://json-schema.org/
+[cue]: https://cuelang.org/
+[pydantic]: https://pydantic-docs.helpmanual.io/
+
+## Reporting
+
+The tool works especially well when generating detailed reporting of QC
+failures. String interpolation allows showing the cause of the QC failure. In
+this example the corresponding message depending on pass or failure of the
+threshold rule. These are enabled using either the `--std[err|out]-fmt` flag
+value of either `json` or `msg`.
+
+```yaml qc_threshold_example
+thresholds:
+
+  - comment: "Density of all boards should be > 10kg / sq.m."
+    id: "DENSITY_FAILURE"
+    require: ["greater_equal_than", ":specs/density", 10]
+    msg:
+      pass_msg: "✅ Board {id} density passes QC."
+      fail_msg: '❌ Board {id} density fails QC: {spec/density}."'
+
+version: 3
+```
+
+This more complex example generates [logfmt][] data. This uses many more data
+fields in the interpolation to provide more information about the evaluation.
+This could be streamed into an analytics dashboard such as grafana to visualise
+QC failures over time. The special field `qc/ts` is the current timestamp of
+evaluating the rule.
+
+```yaml
+thresholds:
+
+  - comment: "Density of all boards should be > 10kg / sq.m."
+    id: "DENSITY_FAILURE"
+    require: ["greater_equal_than", ":specs/density", 10]
+    msg:
+      prefix: "ts={qc/ts} id={id} lot={lot} density={specs/density}"
+      pass: 'level=DEBUG qc=pass msg="Board {id} density passes QC."'
+      fail: 'level=CRITICAL qc=fail msg="Board {id} density fails QC: {specs/density}."'
+
+version: 3
+```
+
+[logfmt]: https://brandur.org/logfmt
 
 ## Command Line Options
 
@@ -120,7 +184,10 @@ thresholds:
 - `-t`, `--thresholds` <THRESHOLD_FILE>: The path to the file containing the
   pass/fail thresholds.
 
-- `-j`, `--json-output`: Generate output as JSON.
+- `-o`, `--stdout-fmt`: Can be `short`, `msg`, `json`, `none`, default is `none`.
+
+- `-e`, `--stderr-fmt`: Can be `short`, `msg`, `json`, `none`, default
+  is `short`.
 
 ## Python API
 
@@ -133,7 +200,7 @@ evaluation = main.run(thresholds, data)
 
 ## File Syntax
 
-### Source Data File
+### Data File
 
 A data file is a YAML/JSON file containing all the data used to make decisions.
 This file should contain nested dictionaries. An example data file might look like:
@@ -157,8 +224,8 @@ fields are defined as:
 
 - **version** - This field is checked by auto-qc to determine if the QC
   threshold syntax matches that of the version of auto-qc being run. For the
-  current version of auto-qc this should be `3.0.0`. If the `version` field is
-  out of date, e.g. `2.x`, then auto-qc will immediately fail.
+  current version of auto-qc this should be 3. If the `version` field is
+  out of date, e.g. 2, then auto-qc will immediately fail.
 
 - **thresholds** - This field should contain a list of dictionaries, where each
   entry defines a rule that should be evaluated against the metrics in the data
@@ -173,26 +240,26 @@ might look like:
 version: 3.0.0
 thresholds:
   - name: Dropping throughput rate
-    fail_code: ERR_001
+    id: ERR_001
     rule:
       - LESS_THAN
-      - "&manufacturing/mean_throughput_per_machine_per_month"
+      - ":manufacturing/mean_throughput_per_machine_per_month"
       - 10000
 
   - name: Increasing defects
-    fail_code: ERR_002
+    id: ERR_002
     rule:
       - OR
       - [
           GREATER_THAN,
-          "&manufacturing/defective_parts_per_million_per_month",
+          ":manufacturing/defective_parts_per_million_per_month",
           100,
         ]
-      - [GREATER_THAN, &customer/returns_per_month , 10]
+      - [GREATER_THAN, :customer/returns_per_month , 10]
 ```
 
 The first rule 'Dropping throughput rate' checks the value in the data file for
-the path `&manufacturing/mean_throughput_per_machine_per_month` ensures it's
+the path `:manufacturing/mean_throughput_per_machine_per_month` ensures it's
 greater than `10000`.
 
 The second rule 'Increasing defects' is a compound rule joined by an `OR`
@@ -213,7 +280,7 @@ Each evaluation rule dictionary contains:
   interpolation may also be used to customise this message with values from the
   data file.
 
-- **fail_code**: An ID for the kind of failure identified if this entry
+- **id**: An ID for the kind of failure identified if this entry
   evaluates to fail. The list of failure codes is returned in the JSON output
   with the flag.
 
@@ -229,7 +296,7 @@ Each evaluation rule dictionary contains:
     'AND'. The list of allowed operators is described in the section below.
 
   - **analysis value** - The value from the data file that should be
-    tested. The ampersand '&' indicates that this a pointer to a value in the
+    tested. The ampersand ':' indicates that this a pointer to a value in the
     data file. The remainder of this string is the JSON path to the value
     to be evaluated against.
 
@@ -242,7 +309,7 @@ Each evaluation rule dictionary contains:
 
 ```yaml
 - equals
-- "&run_metadata/protocol"
+- ":run_metadata/protocol"
 - Low Input DNA
 ```
 
@@ -251,7 +318,7 @@ Test whether one numeric value is greater/smaller than another.
 
 ```yaml
 - greater_than
-- "&human_contamination/metrics/percent_contamination"
+- ":human_contamination/metrics/percent_contamination"
 - 5
 ```
 
@@ -262,10 +329,10 @@ operator are themselves thresholds.
 ```yaml
 - and
 - - greater_than
-  - "&cat_contamination/metrics/percent_contamination"
+  - ":cat_contamination/metrics/percent_contamination"
   - 5
 - - greater_than
-  - "&dog_contamination/metrics/percent_contamination"
+  - ":dog_contamination/metrics/percent_contamination"
   - 5
 ```
 
@@ -274,10 +341,10 @@ operator are themselves thresholds.
 ```yaml
 - or
 - - greater_than
-  - "&cat_contamination/metrics/percent_contamination"
+  - ":cat_contamination/metrics/percent_contamination"
   - 5
 - - greater_than
-  - "&dog_contamination/metrics/percent_contamination"
+  - ":dog_contamination/metrics/percent_contamination"
   - 5
 ```
 
@@ -285,7 +352,7 @@ operator are themselves thresholds.
 
 ```yaml
 - not
-- "&cat_contamination/is_contaminated"
+- ":cat_contamination/is_contaminated"
 ```
 
 **is_in** / **is_not_in** - Test whether a value is in a list of values. Note
@@ -293,7 +360,7 @@ that the list of values must begin with the **list** operator.
 
 ```yaml
 - is_in
-- "&cat_contamination/name_of_cat"
+- ":cat_contamination/name_of_cat"
 - - list
   - "Chase No Face"
   - "Colonel Meow"
@@ -333,7 +400,7 @@ poetry run bump2version major  # 3.1.0 → 4.0.0
 
 ## Licence
 
-auto-qc Copyright (c) 2017-2021, The Regents of the University of California,
+auto-qc Copyright (c) 2017-2022, The Regents of the University of California,
 through Lawrence Berkeley National Laboratory (subject to receipt of any
 required approvals from the U.S. Dept. of Energy). All rights reserved.
 
@@ -356,7 +423,7 @@ Michael Barton <mail@michaelbarton.me.uk>
 
 ## HISTORY
 
-- 3.0.0 - Mon 08 Feb 2021
+- 3.0.0 - Mon 08 Feb 2022
 - 2.0.0 - Mon 20 Jun 2016
 - 1.1.0 - Mon 27 Apr 2015
 - 1.0.0 - Fri 15 Aug 2014
