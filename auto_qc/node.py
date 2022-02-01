@@ -1,9 +1,8 @@
+import functools
 import operator
 import typing
 
-import fn
 import funcy
-from fn import iters
 
 from auto_qc import variable
 from auto_qc.util import functional
@@ -29,7 +28,7 @@ def is_operator(v):
 
 
 def has_doc_dict(qc_node):
-    return isinstance(iters.head(qc_node), dict)
+    return isinstance(qc_node[0], dict)
 
 
 def get_all_operators(qc_node):
@@ -38,11 +37,11 @@ def get_all_operators(qc_node):
     """
 
     def _walk_node(n):
+        # TODO: Can this be removed? Is doc-dict no longer being provided?
         if has_doc_dict(n):
-            return _walk_node(list(iters.tail(n)))
+            return _walk_node(list(n[1:]))
         else:
-            operator_ = iters.head(n)
-            rest = iters.tail(n)
+            operator_, rest = n[0], n[1:]
             return [operator_, *f(rest)]
 
     f = funcy.partial(map, functional.recursive_apply(_walk_node, functional.empty_list))
@@ -56,7 +55,7 @@ def eval_variables(analyses: typing.Dict[str, typing.Any], rule: typing.List[typ
     value.
 
     Args:
-      analysis: A dictionary corresponding to the values referenced in the
+      analyses: A dictionary corresponding to the values referenced in the
       given s-expression.
       rule: An s-expression list in the form of [operator, arg1, arg2, ...].
 
@@ -74,7 +73,9 @@ def eval_variables(analyses: typing.Dict[str, typing.Any], rule: typing.List[typ
         else:
             return n
 
-    return list(map(functional.recursive_apply(fn.F(eval_variables, analyses), _eval), rule))
+    return list(
+        map(functional.recursive_apply(functools.partial(eval_variables, analyses), _eval), rule)
+    )
 
 
 def evaluate_rule(node: typing.List[typing.Any]) -> bool:
@@ -92,6 +93,6 @@ def evaluate_rule(node: typing.List[typing.Any]) -> bool:
       >>> evaluate_rule([>, 0, 1])
       FALSE
     """
-    args = list(map(functional.recursive_apply(evaluate_rule), iters.tail(node)))
+    args = list(map(functional.recursive_apply(evaluate_rule), node[1:]))
     f = OPERATORS[node[0]]
     return f(*args)
