@@ -11,8 +11,8 @@ Auto QC Version $(version)
 The following commands are available for building and testing:
 
   $(HLT)make bootstrap$(NC)   Installs python and ruby dependencies locally
-  $(HLT)make test$(NC)        Runs all unit tests defined in the test/
-  $(HLT)make feature$(NC)     Runs all feature tests defined in the features/
+  $(HLT)make test$(NC)        Runs all unit tests defined in the test/ directory
+  $(HLT)make feature$(NC)     Runs all feature tests defined in the features/ directory
   $(HLT)make fmt$(NC)         Runs black and isort code formatting
   $(HLT)make fmt_check$(NC)   Checks code is correctly formatted
   $(HLT)make build$(NC)       Builds a python package of auto_qc in dist/

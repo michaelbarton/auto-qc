@@ -5,7 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## 3.0.0 - Unreleased
 
-- Update code from python 2.7 => 3.7.
+- Update code from python 2.7 => ^3.7.
 - Rename flag: `--threshold-file` => `--thresholds`
 - Rename flag: `--analysis-file` => `--data`
 - Simplify the format of the `data` file: removed required metadata fields. Now
@@ -13,6 +13,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Simplify the format of the `thresholds` file. Path to `auto-qc` version
   changed from `metadata.auto_qc.version` => `version`.
 - Returns a non-zero exit if the QC tests do not pass.
+- Remove the fn library dependency. This library is no longer maintained.
 
 ## 2.0.0 - 2018-02-21
 
