@@ -63,6 +63,10 @@ Examples: Operators
   | C        | is_in              | [list, A, B] | FAIL   | 1    |
   | A        | is_not_in          | [list, A, B] | FAIL   | 1    |
   | C        | is_not_in          | [list, A, B] | PASS   | 0    |
+  | [1,2,3]  | contains           | 1            | PASS   | 0    |
+  | [1,2,3]  | contains           | 4            | FAIL   | 1    |
+  | [1,2,3]  | not_contains       | 4            | PASS   | 0    |
+  | [1,2,3]  | not_contains       | 1            | FAIL   | 1    |
 
 Scenario: Using the unary not operator
   Given I create the file "analysis.yml" with the contents:
