@@ -38,11 +38,8 @@ def get_all_operators(qc_node):
 
     def _walk_node(n):
         # TODO: Can this be removed? Is doc-dict no longer being provided?
-        if has_doc_dict(n):
-            return _walk_node(list(n[1:]))
-        else:
-            operator_, rest = n[0], n[1:]
-            return [operator_, *f(rest)]
+        operator_, rest = n[0], n[1:]
+        return [operator_, *f(rest)]
 
     f = funcy.partial(map, functional.recursive_apply(_walk_node, functional.empty_list))
 
@@ -94,5 +91,5 @@ def evaluate_rule(node: typing.List[typing.Any]) -> bool:
       FALSE
     """
     args = list(map(functional.recursive_apply(evaluate_rule), node[1:]))
-    f = OPERATORS[node[0]]
-    return f(*args)
+    qc_func = OPERATORS[node[0]]
+    return qc_func(*args)

@@ -63,10 +63,6 @@ Examples: Operators
   | C        | is_in              | [list, A, B] | FAIL   | 1    |
   | A        | is_not_in          | [list, A, B] | FAIL   | 1    |
   | C        | is_not_in          | [list, A, B] | PASS   | 0    |
-  | [1,2,3]  | contains           | 1            | PASS   | 0    |
-  | [1,2,3]  | contains           | 4            | FAIL   | 1    |
-  | [1,2,3]  | not_contains       | 4            | PASS   | 0    |
-  | [1,2,3]  | not_contains       | 1            | FAIL   | 1    |
 
 Scenario: Using the unary not operator
   Given I create the file "analysis.yml" with the contents:
@@ -191,3 +187,42 @@ Examples: Operators
   | 1     | 0     | 1     | FAIL   | 1    |
   | 1     | 1     | 0     | FAIL   | 1    |
   | 1     | 1     | 1     | FAIL   | 1    |
+
+
+Scenario Outline: Passing in a list as a data path.
+  Given I create the file "analysis.yml" with the contents:
+   """
+   metric_1: [0, 0]
+   """
+  And I create the file "threshold.yml" with the contents:
+   """
+   version: 3.0.0
+   thresholds:
+   - name: example test 1
+     fail_msg: fails
+     pass_msg: passes
+     fail_code: ERR
+     rule:
+       - <op>
+       - <lit_1>
+       - :metric_1
+   """
+  When I run the command "../bin/auto-qc" with the arguments:
+    | key              | value         |
+    | --data           | analysis.yml  |
+    | --thresholds     | threshold.yml |
+  Then the standard error should be empty
+  And the exit code should be <exit>
+  And the standard out should contain:
+    """
+    <result>
+
+    """
+
+Examples: Operators
+  | lit_1 | op        | result | exit |
+  | 0     | is_in     | PASS   | 0    |
+  | 0     | is_not_in | FAIL   | 1    |
+  | 1     | is_in     | FAIL   | 1    |
+  | 1     | is_not_in | PASS   | 0    |
+

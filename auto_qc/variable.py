@@ -21,12 +21,26 @@ def is_variable_path_valid(data: typing.Dict[str, typing.Any], path: str) -> boo
 
 
 def get_variable_value(data: typing.Dict[str, typing.Any], path: str) -> typing.Any:
-    """
-    Get variable's value by traversing its path into the analysis
+    """Get variable's value by traversing its path into the data file.
+
+    Args:
+        data: Source data to fetch value from.
+        path: Path to value.
+
+    Returns:
+        The value of the variable pointed to by the path.
+
+    Notes:
+        If the value is a list, the `list` string is appended to the start of the list. This is necessary because
+        lists are treated as SEXPs where the first node in each list is an operator.
+
     """
     drop_colon = path[1:]
     path_array = drop_colon.split("/")
-    return funcy.get_in(data, path_array)
+    var_value = funcy.get_in(data, path_array)
+    if isinstance(var_value, list):
+        var_value.insert(0, "list")
+    return var_value
 
 
 def get_variable_names(qc_node):
