@@ -37,7 +37,6 @@ def get_all_operators(qc_node):
     """
 
     def _walk_node(n):
-        # TODO: Can this be removed? Is doc-dict no longer being provided?
         operator_, rest = n[0], n[1:]
         return [operator_, *f(rest)]
 
