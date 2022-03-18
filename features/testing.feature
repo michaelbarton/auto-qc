@@ -225,4 +225,5 @@ Examples: Operators
   | 0     | is_not_in | FAIL   | 1    |
   | 1     | is_in     | FAIL   | 1    |
   | 1     | is_not_in | PASS   | 0    |
+  | list  | is_in     | FAIL   | 1    |
 
