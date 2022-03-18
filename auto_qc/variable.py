@@ -39,7 +39,7 @@ def get_variable_value(data: typing.Dict[str, typing.Any], path: str) -> typing.
     path_array = drop_colon.split("/")
     var_value = funcy.get_in(data, path_array)
     if isinstance(var_value, list):
-        var_value.insert(0, "list")
+        return ["list", *var_value]
     return var_value
 
 
