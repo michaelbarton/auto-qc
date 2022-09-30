@@ -24,8 +24,9 @@ jobs:
         uses: abatilo/actions-poetry@v2
 
       - name: Install dependencies
-        run: pip install --upgrade setuptools
-        run: make bootstrap
+        run:
+          - pip install --upgrade setuptools
+          - make bootstrap
 
       - name: Check code formatting
         run: make fmt_check
