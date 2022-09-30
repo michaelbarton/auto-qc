@@ -1,3 +1,4 @@
+---
 name: Unit and feature tests
 
 on: [push]
