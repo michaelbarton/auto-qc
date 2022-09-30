@@ -2,6 +2,7 @@ import gzip
 import json
 import os.path
 import re
+from re import search
 
 import behave
 
@@ -84,7 +85,8 @@ def stream_should_contain(context, stream):
         s = context.output.stderr
     else:
         raise RuntimeError(f'Unknown stream "{stream}"')
-    assert context.text.strip() in s
+    message = context.text.strip()
+    assert message in s, f"Expected {message} in {s}"
 
 
 @behave.then("the standard {stream} should equal")
@@ -152,7 +154,6 @@ def step_impt(context, target, contents):
 
 @behave.then('the file "{target}" should include')
 def file_should_include(context, target):
-    from re import search
 
     with open(context.output.files_created[target].full, "r") as f:
         contents = f.read()
