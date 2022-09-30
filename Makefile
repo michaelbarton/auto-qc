@@ -86,7 +86,7 @@ test: fmt
 
 # Commands for running tests and features
 feature = poetry run behave --stop
-test    = clear && poetry run nosetests --rednose
+test    = clear && poetry run pytest
 
 #################################################
 #
