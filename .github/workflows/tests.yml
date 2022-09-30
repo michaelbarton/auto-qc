@@ -23,10 +23,11 @@ jobs:
       - name: Set up Poetry
         uses: abatilo/actions-poetry@v2
 
+      - name: Upgrade setuptools
+        run: pip install --upgrade setuptools
+
       - name: Install dependencies
-        run:
-          - pip install --upgrade setuptools
-          - make bootstrap
+        run: make bootstrap
 
       - name: Check code formatting
         run: make fmt_check
