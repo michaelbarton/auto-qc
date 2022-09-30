@@ -1,5 +1,3 @@
-from nose import tools
-
 from auto_qc import object
 from auto_qc.evaluate import qc
 
@@ -22,7 +20,7 @@ def test_build_passing_qc_node_with_two_literals():
         "fail_code": "ERR01",
         "message": "passes",
     }
-    tools.assert_equal(qc.build_qc_node(threshold_node, {}), expected)
+    assert qc.build_qc_node(threshold_node, {}) == expected
 
 
 def test_build_failing_qc_node_with_literal_and_variable():
@@ -43,7 +41,7 @@ def test_build_failing_qc_node_with_literal_and_variable():
         "fail_code": "ERR01",
         "message": "fails",
     }
-    tools.assert_equal(qc.build_qc_node(threshold_node, a), expected)
+    assert qc.build_qc_node(threshold_node, a) == expected
 
 
 def test_build_passing_qc_node_with_interpolated_msg():
@@ -56,4 +54,4 @@ def test_build_passing_qc_node_with_interpolated_msg():
     )
     a = {"ref": {"metric_1": 2}}
     node = qc.build_qc_node(threshold_node, a)
-    tools.assert_equal(node["message"], "Metric is 2")
+    assert node["message"] == "Metric is 2"

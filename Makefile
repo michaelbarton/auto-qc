@@ -10,7 +10,7 @@ Auto QC Version $(version)
 
 The following commands are available for building and testing:
 
-  $(HLT)make bootstrap$(NC)   Installs python and ruby dependencies locally
+  $(HLT)make bootstrap$(NC)   Installs python dependencies locally
   $(HLT)make test$(NC)        Runs all unit tests defined in the test/ directory
   $(HLT)make feature$(NC)     Runs all feature tests defined in the features/ directory
   $(HLT)make fmt$(NC)         Runs black and isort code formatting
@@ -86,7 +86,7 @@ test: fmt
 
 # Commands for running tests and features
 feature = poetry run behave --stop
-test    = clear && poetry run nosetests --rednose
+test    = clear && poetry run pytest
 
 #################################################
 #

@@ -1,3 +1,4 @@
+---
 name: Super-Linter
 
 # Run this workflow every time a new commit pushed to your repository
@@ -11,6 +12,14 @@ env:
   # Getting pylint to pass is a pain half the time.
   # E.g. https://github.com/PyCQA/pylint/issues/3882
   VALIDATE_PYTHON_PYLINT: false
+
+  # Disable these for time being, could be reenabled later
+  VALIDATE_PYTHON_MYPY: false
+  VALIDATE_PYTHON_FLAKE8: false
+  VALIDATE_GHERKIN: false
+  VALIDATE_MARKDOWN: false
+  VALIDATE_NATURAL_LANGUAGE: false
+  VALIDATE_JSCPD: false
 
 jobs:
   # Set the job key. The key is displayed as the job name
@@ -28,7 +37,7 @@ jobs:
 
       # Runs the Super-Linter action
       - name: Run Super-Linter
-        uses: github/super-linter@v3
+        uses: github/super-linter@v4
         env:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

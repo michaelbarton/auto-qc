@@ -1,8 +1,10 @@
+import gzip
 import json
 import os.path
+import re
+from re import search
 
 import behave
-from nose import tools
 
 from features.steps import assertions
 
@@ -35,7 +37,6 @@ def create_delimited_file(context, delimiter, target):
 
 @behave.given('I gzip the file "{file_}"')
 def gzip_file(context, file_):
-    import gzip
 
     path = os.path.join(context.env.cwd, file_)
     with open(path, "rb") as f_in:
@@ -51,7 +52,6 @@ def create_directory(context, target):
 
 @behave.when('I run the command "{command}" with the arguments')
 def run_command_with_args(context, command):
-    import re
 
     arguments = " ".join([" ".join(row) for row in context.table])
     arguments = re.sub(r"\s+", " ", arguments.strip())
@@ -74,7 +74,7 @@ def stream_should_contain_output(context, stream, output):
         s = context.output.stderr
     else:
         raise RuntimeError(f'Unknown stream "{stream}"')
-    tools.assert_in(output, s)
+    assert output in s
 
 
 @behave.then("the standard {stream} should contain")
@@ -85,7 +85,8 @@ def stream_should_contain(context, stream):
         s = context.output.stderr
     else:
         raise RuntimeError(f'Unknown stream "{stream}"')
-    tools.assert_in(context.text.strip(), s)
+    message = context.text.strip()
+    assert message in s, f"Expected {message} in {s}"
 
 
 @behave.then("the standard {stream} should equal")
@@ -101,30 +102,26 @@ def stream_should_equal(context, stream):
 
 @behave.then("The exit code should be non-zero")
 def exit_code_non_zero(context):
-    tools.assert_not_equal(context.output.returncode, 0)
+    assert not context.output.returncode == 0
 
 
 @behave.then("The exit code should be {code}")
 def exit_code(context, code):
-    tools.assert_equal(context.output.returncode, int(code))
+    assert context.output.returncode == int(code)
 
 
 @behave.then('the {thing} "{target}" should exist')
 def should_exist(context, thing, target):
-    tools.assert_in(
-        target,
-        list(context.output.files_created.keys()),
-        "The {0} '{1}' does not exist.".format(thing, target),
-    )
+    assert target in list(
+        context.output.files_created.keys()
+    ), "The {0} '{1}' does not exist.".format(thing, target)
 
 
 @behave.then('the {thing} "{target}" should not exist')
 def should_not_exist(context, thing, target):
-    tools.assert_not_in(
-        target,
-        list(context.output.files_created.keys()),
-        "The {0} '{1}' does not exist.".format(thing, target),
-    )
+    assert not target in list(
+        context.output.files_created.keys()
+    ), "The {0} '{1}' does not exist.".format(thing, target)
 
 
 @behave.then("the files should exist")
@@ -135,11 +132,9 @@ def files_should_exist(context):
 
 @behave.then('the file "{target}" should exist with the contents')
 def file_should_exist_with_contents(context, target):
-    tools.assert_in(
-        target,
-        list(context.output.files_created.keys()),
-        "The file '{}' does not exist.".format(target),
-    )
+    assert target in list(
+        context.output.files_created.keys()
+    ), "The file '{}' does not exist.".format(target)
     with open(context.output.files_created[target].full, "r") as f:
         assertions.assert_string_equal_with_diff(context.text, f.read())
 
@@ -159,15 +154,12 @@ def step_impt(context, target, contents):
 
 @behave.then('the file "{target}" should include')
 def file_should_include(context, target):
-    from re import search
 
     with open(context.output.files_created[target].full, "r") as f:
         contents = f.read()
         for row in context.table:
             regex = row["re_match"].strip()
-            tools.assert_true(
-                search(regex, contents), "RE '{}' not found in: \n{}".format(regex, contents)
-            )
+            assert search(regex, contents), "RE '{}' not found in: \n{}".format(regex, contents)
 
 
 @behave.then('the file "{target}" should should have the permissions "{permission}"')
