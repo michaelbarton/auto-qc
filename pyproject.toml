@@ -13,7 +13,7 @@ exclude = ["test", "feature"]
 auto-qc = "auto_qc.main:cli"
 
 [tool.poetry.dependencies]
-PyYAML = "^5.3.1"
+PyYAML = "*"
 click = "^8.0.1"
 funcy = "^1.15"
 pydantic = "^1.7.3"
