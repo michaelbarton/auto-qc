@@ -42,14 +42,14 @@ And the threshold rules that the business cares about look like this:
 version: 3.0.0
 thresholds:
   - fail_code: "FOO_FAILURE"
-    rule: ["greater_than", "&foo", 10]
+    rule: ["greater_than", ":foo", 10]
   - fail_code: "BAR_FAILURE"
-    rule: ["greater_than", "&bar", 0]
+    rule: ["greater_than", ":bar", 0]
 ```
 
 Running this with `auto-qc` would report the error `BAR_FAILURE`, because the
 value for `bar` in the data file is -2, while the thresholds includes a rule
-that the pointer to the value for `&bar` should not be below 0. Every rule
+that the pointer to the value for `:bar` should not be below 0. Every rule
 defined in the `thresholds` field should evaluate to `True`. If any evaluate to
 `False` then auto QC will return the associated string in the `fail_code`
 field.
@@ -70,22 +70,22 @@ handled by encoding the widget type in the data file.
 ```
 
 Then the thresholds file can use a mixture of `OR` and `AND` expressions to
-test the value of `&bar` based on the value of the `&widget_type` field.
+test the value of `:bar` based on the value of the `:widget_type` field.
 
 ```yaml
 version: 3.0.0
 thresholds:
   - fail_code: "FOO_FAILURE"
-    rule: ["greater_than", "&foo", 10]
+    rule: ["greater_than", ":foo", 10]
   - fail_code: "BAR_FAILURE"
     rule:
       - OR
       - - AND
-        - [equals "&widget_type", "cheap"]
-        - ["greater_than", "&bar", -5]
+        - ["equals", ":widget_type", "cheap"]
+        - ["greater_than", ":bar", -5]
       - - AND
-        - [equals "&widget_type", "expensive"]
-        - ["greater_than", "&bar", 2]
+        - ["equals", ":widget_type", "expensive"]
+        - ["greater_than", ":bar", 2]
 ```
 
 ## Command Line Options
@@ -152,7 +152,7 @@ thresholds:
     fail_code: ERR_001
     rule:
       - LESS_THAN
-      - "&manufacturing/mean_throughput_per_machine_per_month"
+      - ":manufacturing/mean_throughput_per_machine_per_month"
       - 10000
 
   - name: Increasing defects
@@ -161,14 +161,14 @@ thresholds:
       - OR
       - [
           GREATER_THAN,
-          "&manufacturing/defective_parts_per_million_per_month",
+          ":manufacturing/defective_parts_per_million_per_month",
           100,
         ]
-      - [GREATER_THAN, &customer/returns_per_month , 10]
+      - ["GREATER_THAN", ":customer/returns_per_month", 10]
 ```
 
 The first rule 'Dropping throughput rate' checks the value in the data file for
-the path `&manufacturing/mean_throughput_per_machine_per_month` ensures it's
+the path `:manufacturing/mean_throughput_per_machine_per_month` ensures it's
 greater than `10000`.
 
 The second rule 'Increasing defects' is a compound rule joined by an `OR`
@@ -205,8 +205,8 @@ Each evaluation rule dictionary contains:
     'AND'. The list of allowed operators is described in the section below.
 
   - **analysis value** - The value from the data file that should be
-    tested. The ampersand '&' indicates that this a pointer to a value in the
-    data file. The remainder of this string is the JSON path to the value
+    tested. The colon ':' indicates that this is a pointer to a value in the
+    data file. The remainder of this string is the path to the value
     to be evaluated against.
 
   - **literal value** - A literal value that to compare with the reference
@@ -218,7 +218,7 @@ Each evaluation rule dictionary contains:
 
 ```yaml
 - equals
-- "&run_metadata/protocol"
+- ":run_metadata/protocol"
 - Low Input DNA
 ```
 
@@ -227,7 +227,7 @@ Test whether one numeric value is greater/smaller than another.
 
 ```yaml
 - greater_than
-- "&human_contamination/metrics/percent_contamination"
+- ":human_contamination/metrics/percent_contamination"
 - 5
 ```
 
@@ -238,10 +238,10 @@ operator are themselves thresholds.
 ```yaml
 - and
 - - greater_than
-  - "&cat_contamination/metrics/percent_contamination"
+  - ":cat_contamination/metrics/percent_contamination"
   - 5
 - - greater_than
-  - "&dog_contamination/metrics/percent_contamination"
+  - ":dog_contamination/metrics/percent_contamination"
   - 5
 ```
 
@@ -250,10 +250,10 @@ operator are themselves thresholds.
 ```yaml
 - or
 - - greater_than
-  - "&cat_contamination/metrics/percent_contamination"
+  - ":cat_contamination/metrics/percent_contamination"
   - 5
 - - greater_than
-  - "&dog_contamination/metrics/percent_contamination"
+  - ":dog_contamination/metrics/percent_contamination"
   - 5
 ```
 
@@ -261,7 +261,7 @@ operator are themselves thresholds.
 
 ```yaml
 - not
-- "&cat_contamination/is_contaminated"
+- ":cat_contamination/is_contaminated"
 ```
 
 **is_in** / **is_not_in** - Test whether a value is in a list of values. Note
@@ -269,7 +269,7 @@ that the list of values must begin with the **list** operator.
 
 ```yaml
 - is_in
-- "&cat_contamination/name_of_cat"
+- ":cat_contamination/name_of_cat"
 - - list
   - "Chase No Face"
   - "Colonel Meow"

@@ -8,10 +8,10 @@ def evaluate(state: object.AutoQC) -> object.AutoQCEvaluation:
     Build a dict QC containing all data about this evaluation.
     """
     nodes = [build_qc_node(x, state.data) for x in state.thresholds]
-    failure_codes = {x["fail_code"] for x in nodes if not x["pass"]}
+    failure_codes = sorted({x["fail_code"] for x in nodes if not x["pass"]})
     evaluation = object.AutoQCEvaluation(
         is_pass=not failure_codes,
-        fail_codes=list(failure_codes),
+        fail_codes=failure_codes,
         evaluation=nodes,
     )
     return evaluation
@@ -47,9 +47,10 @@ def does_node_pass(input_node: object.ThresholdNode, analysis):
 def create_qc_message(
     is_pass: bool, input_node: object.ThresholdNode, variables: typing.Dict[str, typing.Any]
 ):
-    if is_pass:
-        return input_node.pass_msg.format(**variables)
-    return input_node.fail_msg.format(**variables)
+    msg = input_node.pass_msg if is_pass else input_node.fail_msg
+    if msg is None:
+        return ""
+    return msg.format(**variables)
 
 
 def build_qc_node(input_node: object.ThresholdNode, analysis: typing.Dict[str, typing.Any]):
