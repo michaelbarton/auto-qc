@@ -3,12 +3,9 @@
 import os
 import sys
 
-import pkg_resources
-
-path = os.path.abspath(pkg_resources.resource_filename(__name__, '..'))
+path = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 sys.path.insert(1, path)
 
-# This import has to come after the paths are setup above
 from auto_qc import main
 
 main.cli()
