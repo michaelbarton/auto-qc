@@ -22,7 +22,7 @@ def create_variable_dict(input_node, analysis):
         list(
             map(
                 lambda x: (x[1:], variable.get_variable_value(analysis, x)),
-                variable.get_variable_names(input_node),
+                variable.get_variable_names(input_node.rule),
             )
         )
     )

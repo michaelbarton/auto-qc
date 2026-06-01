@@ -56,7 +56,7 @@ def cli(data: str, thresholds: str, json_output: bool, manual: bool) -> None:
         missing_flags.append("--thresholds")
 
     if missing_flags:
-        stderr.print(f"[red]Error[/red]: missing required flags: {', '.join(missing_flags) }")
+        stderr.print(f"[red]Error[/red]: missing required flags: {', '.join(missing_flags)}")
         exit(1)
 
     try:

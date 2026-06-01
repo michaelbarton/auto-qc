@@ -1,22 +1,20 @@
-version = 3.0.0
-name    := auto_qc
+name := auto_qc
 
 HLT=\033[0;34m
 NC=\033[0m
 
 define HELP
 
-Auto QC Version $(version)
+Auto QC
 
 The following commands are available for building and testing:
 
   $(HLT)make bootstrap$(NC)   Installs python dependencies locally
   $(HLT)make test$(NC)        Runs all unit tests defined in the test/ directory
   $(HLT)make feature$(NC)     Runs all feature tests defined in the features/ directory
-  $(HLT)make fmt$(NC)         Runs black and isort code formatting
-  $(HLT)make fmt_check$(NC)   Checks code is correctly formatted
+  $(HLT)make fmt$(NC)         Formats code with ruff and prettier (markdown)
+  $(HLT)make fmt_check$(NC)   Checks code formatting with ruff and prettier
   $(HLT)make build$(NC)       Builds a python package of auto_qc in dist/
-
 
 endef
 export HELP
@@ -24,77 +22,31 @@ export HELP
 help:
 	clear && echo "$$HELP"
 
-all: test feature build
+all: fmt_check test feature build
 
-#################################################
-#
-# Build
-#
-#################################################
+bootstrap:
+	uv sync
 
-dist    := dist/$(name)-$(version).tar.gz
+fmt:
+	uv run ruff check --fix auto_qc test features
+	uv run ruff format auto_qc test features
+	npx --yes prettier@2.2.1 --write .
 
-objs = $(shell find auto_qc -type f ! -name "*.pyc") pyproject.toml
+fmt_check:
+	uv run ruff check auto_qc test features
+	uv run ruff format --check auto_qc test features
+	npx --yes prettier@2.2.1 --check .
 
-build: $(dist)
+test:
+	uv run pytest
 
-$(dist): $(objs)
-	poetry build
+feature:
+	uv run behave --stop
+
+build:
+	uv build
 
 clean:
 	rm -f dist/*
 
-
-#################################################
-#
-# Unit and Feature tests
-#
-#################################################
-
-
-fmt:
-	poetry run isort auto_qc test features bin
-	poetry run black auto_qc test features bin
-	docker-compose run --rm prettier --write /mnt
-
-fmt_check:
-	poetry run isort --check --diff auto_qc test features bin
-	poetry run black --check auto_qc test features bin
-	docker-compose run --rm prettier --check /mnt
-
-autofeature:
-	@clear && $(feature) || true
-	@fswatch \
-		--exclude 'pyc' \
-		--one-per-batch	./auto_qc \
-		--one-per-batch ./feature \
-		| xargs -n 1 -I {} bash -c "$(feature)"
-
-feature:
-	@$(feature)
-
-autotest: fmt
-	@clear && $(test) || true
-	@fswatch \
-		--exclude 'pyc' \
-		--one-per-batch	./auto_qc \
-		--one-per-batch ./test \
-		| xargs -n 1 -I {} bash -c "$(test)"
-
-test: fmt
-	@$(test)
-
-# Commands for running tests and features
-feature = poetry run behave --stop
-test    = clear && poetry run pytest
-
-#################################################
-#
-# Bootstrap project requirements for development
-#
-#################################################
-
-bootstrap:
-	poetry install
-
-.PHONY: bootstrap test feature autotest autofeature
+.PHONY: help all bootstrap fmt fmt_check test feature build clean

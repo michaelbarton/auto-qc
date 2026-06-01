@@ -3,7 +3,6 @@ import json
 import textwrap
 import typing
 
-import funcy
 import pydantic
 
 from auto_qc import version
@@ -16,19 +15,22 @@ class ThresholdNode(pydantic.BaseModel):
     name: str
     fail_code: str
     rule: typing.List[typing.Any]
-    pass_msg: typing.Optional[str]
-    fail_msg: typing.Optional[str]
-    tags: typing.Optional[typing.List[str]]
+    pass_msg: typing.Optional[str] = None
+    fail_msg: typing.Optional[str] = None
+    tags: typing.Optional[typing.List[str]] = None
 
 
 class AutoQC(pydantic.BaseModel):
     """Container for all data used by auto-qc."""
 
+    model_config = pydantic.ConfigDict(coerce_numbers_to_str=True)
+
     version: str
     thresholds: typing.List[ThresholdNode]
     data: typing.Dict[str, typing.Any]
 
-    @pydantic.validator("version")
+    @pydantic.field_validator("version")
+    @classmethod
     def validate_version(cls, ver: str) -> str:
         """Validate the version number in the threshold files is correct."""
         if version.major_version(ver) != version.major_version(version.__version__):
@@ -67,7 +69,7 @@ class AutoQCEvaluation:
 
         return json.dumps(
             {
-                "qc": [funcy.omit(x, ["variables"]) for x in self.evaluation],
+                "qc": [{k: v for k, v in x.items() if k != "variables"} for x in self.evaluation],
                 "auto_qc_version": version.__version__,
                 "pass": self.is_pass,
                 "fail_codes": self.fail_codes,

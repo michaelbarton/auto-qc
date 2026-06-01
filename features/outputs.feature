@@ -21,7 +21,7 @@ Scenario Outline: Generating JSON formatted output
        - :value
        - <literal>
    """
-  When I run the command "../bin/auto-qc" with the arguments:
+  When I run the command "auto-qc" with the arguments:
      | key              | value         |
      | --data           | analysis.yml  |
      | --thresholds     | threshold.yml |

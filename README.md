@@ -51,8 +51,7 @@ Running this with `auto-qc` would report the error `BAR_FAILURE`, because the
 value for `bar` in the data file is -2, while the thresholds includes a rule
 that the pointer to the value for `:bar` should not be below 0. Every rule
 defined in the `thresholds` field should evaluate to `True`. If any evaluate to
-`False` then auto QC will return the associated string in the `fail_code`
-field.
+`False` then auto QC will return the associated string in the `fail_code` field.
 
 ### More-complex example
 
@@ -69,8 +68,8 @@ handled by encoding the widget type in the data file.
 }
 ```
 
-Then the thresholds file can use a mixture of `OR` and `AND` expressions to
-test the value of `:bar` based on the value of the `:widget_type` field.
+Then the thresholds file can use a mixture of `OR` and `AND` expressions to test
+the value of `:bar` based on the value of the `:widget_type` field.
 
 ```yaml
 version: 3.0.0
@@ -112,7 +111,8 @@ evaluation = main.run(thresholds, data)
 ### Source Data File
 
 A data file is a YAML/JSON file containing all the data used to make decisions.
-This file should contain nested dictionaries. An example data file might look like:
+This file should contain nested dictionaries. An example data file might look
+like:
 
 ```yaml
 ---
@@ -174,8 +174,8 @@ greater than `10000`.
 The second rule 'Increasing defects' is a compound rule joined by an `OR`
 operator, and checks two metrics in the data file to see if either are above a
 given threshold file. This second rule illustrates that all business rules are
-lists beginning with an operator, and can be arbitrarily nested. The full list of
-available operators is given below.
+lists beginning with an operator, and can be arbitrarily nested. The full list
+of available operators is given below.
 
 Each evaluation rule dictionary contains:
 
@@ -193,8 +193,8 @@ Each evaluation rule dictionary contains:
   evaluates to fail. The list of failure codes is returned in the JSON output
   with the flag.
 
-- **tags**: A optional list of tags for the QC entry. These tags are returned
-  in the JSON output if `--json-output` is used. These have no effect on the
+- **tags**: A optional list of tags for the QC entry. These tags are returned in
+  the JSON output if `--json-output` is used. These have no effect on the
   evaluation of the tool, but can be useful for downstream processing of the
   generated JSON output. E.g. process the failures and group by tags.
 
@@ -204,10 +204,9 @@ Each evaluation rule dictionary contains:
     comparison operators such as 'greater_than' or Boolean operators such as
     'AND'. The list of allowed operators is described in the section below.
 
-  - **analysis value** - The value from the data file that should be
-    tested. The colon ':' indicates that this is a pointer to a value in the
-    data file. The remainder of this string is the path to the value
-    to be evaluated against.
+  - **analysis value** - The value from the data file that should be tested. The
+    colon ':' indicates that this is a pointer to a value in the data file. The
+    remainder of this string is the path to the value to be evaluated against.
 
   - **literal value** - A literal value that to compare with the reference
     value.
@@ -222,8 +221,9 @@ Each evaluation rule dictionary contains:
 - Low Input DNA
 ```
 
-**greater_than** / **less_than** / **greater_equal_than** / **less_equal_than** -
-Test whether one numeric value is greater/smaller than another.
+**greater_than** / **less_than** / **greater_equal_than** /
+**less_equal_than** - Test whether one numeric value is greater/smaller than
+another.
 
 ```yaml
 - greater_than
@@ -285,27 +285,25 @@ that the list of values must begin with the **list** operator.
 Type `make` to get a full list of available commands for building and testing.
 The available commands are:
 
+This project uses [uv](https://docs.astral.sh/uv/) for dependency management and
+[ruff](https://docs.astral.sh/ruff/) for linting and formatting. Markdown is
+formatted with [prettier](https://prettier.io/) via `npx`.
+
 ```console
-make bootstrap   Installs python and ruby dependencies locally
+make bootstrap   Installs python dependencies locally
 make test        Runs all unit tests defined in the test/
 make feature     Runs all feature tests defined in the features/
-make fmt         Runs black and isort code formatting
-make fmt_check   Checks code is correctly formatted
+make fmt         Formats code with ruff and prettier (markdown)
+make fmt_check   Checks code formatting with ruff and prettier
 make build       Builds a python package of auto_qc in dist/
 ```
 
 ## Versioning
 
-This project uses bump2version to manage the version numbers. This project aims
-to adhere to [Semantic Versioning](http://semver.org/) as much as possible. The
-project version history is described in the CHANGELOG. Version strings can be
-updated with the shell as follows:
-
-```console
-poetry run bump2version patch  # 3.0.0 → 3.0.1
-poetry run bump2version minor  # 3.0.1 → 3.1.0
-poetry run bump2version major  # 3.1.0 → 4.0.0
-```
+This project aims to adhere to [Semantic Versioning](http://semver.org/) as much
+as possible. The project version history is described in the CHANGELOG. The
+version number is single-sourced from `auto_qc/version.py`; bump a release by
+editing the `__version__` string there.
 
 ## Licence
 
@@ -321,8 +319,8 @@ NOTICE. This software was developed under funding from the U.S. Department of
 Energy. As such, the U.S. Government has been granted for itself and others
 acting on its behalf a paid-up, nonexclusive, irrevocable, worldwide license in
 the Software to reproduce, prepare derivative works, and perform publicly and
-display publicly. The U.S. Government is granted for itself and others acting
-on its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the
+display publicly. The U.S. Government is granted for itself and others acting on
+its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the
 Software to reproduce, prepare derivative works, distribute copies to the
 public, perform publicly and display publicly, and to permit others to do so.
 

@@ -112,16 +112,16 @@ def exit_code(context, code):
 
 @behave.then('the {thing} "{target}" should exist')
 def should_exist(context, thing, target):
-    assert target in list(
-        context.output.files_created.keys()
-    ), "The {0} '{1}' does not exist.".format(thing, target)
+    assert target in list(context.output.files_created.keys()), (
+        "The {0} '{1}' does not exist.".format(thing, target)
+    )
 
 
 @behave.then('the {thing} "{target}" should not exist')
 def should_not_exist(context, thing, target):
-    assert not target in list(
-        context.output.files_created.keys()
-    ), "The {0} '{1}' does not exist.".format(thing, target)
+    assert target not in list(context.output.files_created.keys()), (
+        "The {0} '{1}' does not exist.".format(thing, target)
+    )
 
 
 @behave.then("the files should exist")
@@ -132,9 +132,9 @@ def files_should_exist(context):
 
 @behave.then('the file "{target}" should exist with the contents')
 def file_should_exist_with_contents(context, target):
-    assert target in list(
-        context.output.files_created.keys()
-    ), "The file '{}' does not exist.".format(target)
+    assert target in list(context.output.files_created.keys()), (
+        "The file '{}' does not exist.".format(target)
+    )
     with open(context.output.files_created[target].full, "r") as f:
         assertions.assert_string_equal_with_diff(context.text, f.read())
 
@@ -146,9 +146,7 @@ def step_impt(context, target, contents):
        Then the file "{}" should exist with the contents:
        """
        {}
-       """'''.format(
-            target, contents
-        )
+       """'''.format(target, contents)
     )
 
 

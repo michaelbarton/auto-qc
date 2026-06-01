@@ -25,6 +25,17 @@ def flatten(n):
     return reduce(_f, n, [])
 
 
+def get_in(data, keys):
+    """
+    Return the value at the nested key path, or None if any key is missing.
+    """
+    for key in keys:
+        if not isinstance(data, dict) or key not in data:
+            return None
+        data = data[key]
+    return data
+
+
 def recursive_apply(list_func, atom_func=identity):
     """
     Creates a function which applies either of the two given functions: the first

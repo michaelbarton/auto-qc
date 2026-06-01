@@ -5,7 +5,7 @@ Feature: Error messages for incorrect use of auto-qc
 
 Scenario: The given analysis file does not exist
   Given I create the file "thresholds.yml"
-  When I run the command "../bin/auto-qc" with the arguments:
+  When I run the command "auto-qc" with the arguments:
      | key              | value          |
      | --data           | none           |
      | --thresholds     | thresholds.yml |
@@ -17,7 +17,7 @@ Scenario: The given analysis file does not exist
 
 Scenario: The given thresholds file does not exist
   Given I create the file "analysis.yml"
-  When I run the command "../bin/auto-qc" with the arguments:
+  When I run the command "auto-qc" with the arguments:
      | key              | value         |
      | --data           | analysis.yml  |
      | --thresholds     | none          |
@@ -39,7 +39,7 @@ Scenario Outline: Incompatible threshold file version number
    version: <version>
    thresholds: []
    """
-  When I run the command "../bin/auto-qc" with the arguments:
+  When I run the command "auto-qc" with the arguments:
      | key              | value         |
      | --data           | analysis.yml  |
      | --thresholds     | threshold.yml |
@@ -76,7 +76,7 @@ Scenario Outline: The given value does not exist
      - <variable>
      - 1
    """
-  When I run the command "../bin/auto-qc" with the arguments:
+  When I run the command "auto-qc" with the arguments:
      | key              | value         |
      | --data           | analysis.yml  |
      | --thresholds     | threshold.yml |
@@ -111,7 +111,7 @@ Scenario: A QC entry is missing a failure code
      - :value
      - 2
    """
-  When I run the command "../bin/auto-qc" with the arguments:
+  When I run the command "auto-qc" with the arguments:
     | key              | value         |
     | --data           | analysis.yml  |
     | --thresholds     | threshold.yml |
@@ -119,6 +119,6 @@ Scenario: A QC entry is missing a failure code
   And the standard error should contain:
     """
     1 validation error for AutoQC
-    thresholds -> 0 -> fail_code
+    thresholds.0.fail_code
     """
   And the exit code should be 1
