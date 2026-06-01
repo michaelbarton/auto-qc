@@ -12,36 +12,41 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          fetch-depth: 1
+          enable-cache: true
 
       - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.7
-
-      - name: Set up Poetry
-        uses: abatilo/actions-poetry@v2
-        with:
-          poetry-version: 1.2
-
-      - name: Upgrade setuptools
-        run: pip install --upgrade setuptools
+        run: uv python install 3.12
 
       - name: Install dependencies
-        run: make bootstrap
+        run: uv sync --locked
 
-      - name: Check code formatting
-        run: make fmt_check
+      - name: Lint
+        run: uv run ruff check auto_qc test features
 
-      - name: Test package builds
-        run: make build
+      - name: Check formatting
+        run: uv run ruff format --check auto_qc test features
+
+      - name: Build package
+        run: uv build
 
       - name: Run unit tests
-        run: make test
+        run: uv run pytest
 
       - name: Run feature tests
-        run: make feature
+        run: uv run behave --stop
+
+  prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check prettier formatting
+        run: npx --yes prettier@2.2.1 --check .

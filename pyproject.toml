@@ -1,45 +1,64 @@
-[tool.poetry]
+[project]
 name = "auto-qc"
-version = "3.0.0"
-description = 'Run high-throughput automated quality control using configuration files.'
-authors = ["Michael Barton <mail@michaelbarton.me.uk>"]
+description = "Run high-throughput automated quality control using configuration files."
+authors = [{ name = "Michael Barton", email = "mail@michaelbarton.me.uk" }]
 license = "BSD-3-Clause"
+license-files = ["LICENSE.txt"]
 readme = "README.md"
-repository = "https://github.com/michaelbarton/auto-qc"
-include = ["auto_qc/MANUAL.md", "README.md"]
-exclude = ["test", "feature"]
+requires-python = ">=3.10"
+dynamic = ["version"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Quality Assurance",
+]
+dependencies = [
+    "PyYAML",
+    "click>=8.0.1",
+    "pydantic>=2,<3",
+    "rich>=10.0.0",
+]
 
-[tool.poetry.scripts]
+[project.urls]
+Homepage = "https://github.com/michaelbarton/auto-qc"
+Repository = "https://github.com/michaelbarton/auto-qc"
+Changelog = "https://github.com/michaelbarton/auto-qc/blob/master/CHANGELOG.md"
+
+[project.scripts]
 auto-qc = "auto_qc.main:cli"
 
-[tool.poetry.dependencies]
-PyYAML = "*"
-click = "^8.0.1"
-funcy = "^1.15"
-pydantic = "^1.7.3"
-python = "^3.7"
-rich = "^10.0.0"
-
-
-[tool.poetry.dev-dependencies]
-pytest = "^6.2.1"
-scripttest = "^1.3"
-behave = ">=1.2.6, <1.3"
-black = "^22.1.0"
-bump2version = "^1.0.1"
-isort = "^5.7.0"
-
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.black]
-line_length = 100
+[tool.hatch.version]
+path = "auto_qc/version.py"
 
-[tool.isort]
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-ensure_newline_before_comments = true
-line_length = 88
+[tool.hatch.build.targets.wheel]
+packages = ["auto_qc"]
+
+[tool.hatch.build.targets.sdist]
+include = ["auto_qc", "README.md", "LICENSE.txt", "CHANGELOG.md"]
+
+[dependency-groups]
+dev = [
+    "pytest>=6.2.1",
+    "scripttest>=1.3",
+    "behave>=1.2.6,<1.3",
+    "ruff>=0.6.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+extend-select = ["I"]  # isort-equivalent import sorting

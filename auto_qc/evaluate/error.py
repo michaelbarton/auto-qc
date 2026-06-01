@@ -1,4 +1,4 @@
-import funcy
+import itertools
 
 from auto_qc import exception, node, object, variable
 
@@ -9,7 +9,9 @@ def check_node_paths(state: object.AutoQC) -> None:
     message in the status if not.
     """
 
-    variable_names = funcy.flatten([variable.get_variable_names(x.rule) for x in state.thresholds])
+    variable_names = list(
+        itertools.chain.from_iterable(variable.get_variable_names(x.rule) for x in state.thresholds)
+    )
     invalid_variables = {
         x for x in variable_names if not variable.is_variable_path_valid(state.data, x)
     }
@@ -25,7 +27,9 @@ def check_operators(state: object.AutoQC) -> None:
     Checks that all operators listed in the QC file are valid. Sets an error
     message in the status if not.
     """
-    operators = funcy.flatten([node.get_all_operators(x.rule) for x in state.thresholds])
+    operators = list(
+        itertools.chain.from_iterable(node.get_all_operators(x.rule) for x in state.thresholds)
+    )
     errors = {x for x in operators if not node.is_operator(x)}
 
     if errors:

@@ -1,6 +1,6 @@
 import typing
 
-import funcy
+from auto_qc.util import functional
 
 
 def is_variable(var: str) -> bool:
@@ -37,11 +37,11 @@ def get_variable_value(data: typing.Dict[str, typing.Any], path: str) -> typing.
     """
     drop_colon = path[1:]
     path_array = drop_colon.split("/")
-    var_value = funcy.get_in(data, path_array)
+    var_value = functional.get_in(data, path_array)
     if isinstance(var_value, list):
         return ["list", *var_value]
     return var_value
 
 
 def get_variable_names(qc_node):
-    return list(funcy.select(is_variable, funcy.flatten(qc_node)))
+    return [x for x in functional.flatten(qc_node) if is_variable(x)]

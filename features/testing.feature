@@ -23,7 +23,7 @@ Scenario Outline: Using different comparison operators
        - :object_1/metric_1/value
        - <literal>
    """
-  When I run the command "../bin/auto-qc" with the arguments:
+  When I run the command "auto-qc" with the arguments:
      | key              | value         |
      | --data           | analysis.yml  |
      | --thresholds     | threshold.yml |
@@ -83,7 +83,7 @@ Scenario: Using the unary not operator
        - not
        - :object_1/metric_1/value
    """
-  When I run the command "../bin/auto-qc" with the arguments:
+  When I run the command "auto-qc" with the arguments:
      | key              | value         |
      | --data           | analysis.yml  |
      | --thresholds     | threshold.yml |
@@ -126,7 +126,7 @@ Scenario Outline: Testing multiple different thresholds
        - ':object_2/metric_2/value'
        - <lit_2>
    """
-  When I run the command "../bin/auto-qc" with the arguments:
+  When I run the command "auto-qc" with the arguments:
     | key              | value         |
     | --data           | analysis.yml  |
     | --thresholds     | threshold.yml |
@@ -169,7 +169,7 @@ Scenario Outline: Using nested thresholds
          - :object_1/metric_1/value
          - <lit_2>
    """
-  When I run the command "../bin/auto-qc" with the arguments:
+  When I run the command "auto-qc" with the arguments:
     | key              | value         |
     | --data           | analysis.yml  |
     | --thresholds     | threshold.yml |
@@ -207,7 +207,7 @@ Scenario Outline: Passing in a list as a data path.
        - <lit_1>
        - :metric_1
    """
-  When I run the command "../bin/auto-qc" with the arguments:
+  When I run the command "auto-qc" with the arguments:
     | key              | value         |
     | --data           | analysis.yml  |
     | --thresholds     | threshold.yml |
@@ -243,7 +243,7 @@ Scenario Outline: Omitting optional pass_msg and fail_msg fields
        - :metric
        - 0
    """
-  When I run the command "../bin/auto-qc" with the arguments:
+  When I run the command "auto-qc" with the arguments:
     | key          | value         |
     | --data       | analysis.yml  |
     | --thresholds | threshold.yml |

@@ -2,8 +2,6 @@ import functools
 import operator
 import typing
 
-import funcy
-
 from auto_qc import variable
 from auto_qc.util import functional
 
@@ -40,7 +38,7 @@ def get_all_operators(qc_node):
         operator_, rest = n[0], n[1:]
         return [operator_, *f(rest)]
 
-    f = funcy.partial(map, functional.recursive_apply(_walk_node, functional.empty_list))
+    f = functools.partial(map, functional.recursive_apply(_walk_node, functional.empty_list))
 
     return functional.flatten(_walk_node(qc_node))
 
