@@ -13,10 +13,16 @@ def is_variable(var: str) -> bool:
 def is_variable_path_valid(data: typing.Dict[str, typing.Any], path: str) -> bool:
     """
     Does the variable path have a matching path in the analysis?
+
+    Checks for the existence of the key path rather than the truthiness of the
+    value so that a legitimately null/zero/false value is not reported as a
+    missing metric.
     """
-    value = get_variable_value(data, path)
-    if value is None:
-        return False
+    node = data
+    for key in path[1:].split("/"):
+        if not isinstance(node, dict) or key not in node:
+            return False
+        node = node[key]
     return True
 
 

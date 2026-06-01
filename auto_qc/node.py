@@ -22,7 +22,7 @@ OPERATORS = {
 
 
 def is_operator(v):
-    return v in OPERATORS.keys()
+    return isinstance(v, str) and v.lower() in OPERATORS
 
 
 def has_doc_dict(qc_node):
@@ -88,5 +88,6 @@ def evaluate_rule(node: typing.List[typing.Any]) -> bool:
       FALSE
     """
     args = list(map(functional.recursive_apply(evaluate_rule), node[1:]))
-    qc_func = OPERATORS[node[0]]
+    op = node[0]
+    qc_func = OPERATORS[op.lower() if isinstance(op, str) else op]
     return qc_func(*args)

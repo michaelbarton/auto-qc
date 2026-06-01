@@ -21,4 +21,4 @@ def test_get_variables_with_no_nesting():
 def test_get_variables_with_nesting():
     qc_node = [["and", ["or", [":ref/metric_1", 2, 1], [":ref/metric_2", 2, 1]]]]
     expected = [":ref/metric_1", ":ref/metric_2"]
-    variable.get_variable_names(qc_node) == expected
+    assert variable.get_variable_names(qc_node) == expected
