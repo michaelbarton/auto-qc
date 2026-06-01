@@ -227,3 +227,36 @@ Examples: Operators
   | 1     | is_not_in | PASS   | 0    |
   | list  | is_in     | FAIL   | 1    |
 
+Scenario Outline: Omitting optional pass_msg and fail_msg fields
+  Given I create the file "analysis.yml" with the contents:
+   """
+   metric: <value>
+   """
+  And I create the file "threshold.yml" with the contents:
+   """
+   version: 3.0.0
+   thresholds:
+   - name: example test
+     fail_code: ERR
+     rule:
+       - greater_than
+       - :metric
+       - 0
+   """
+  When I run the command "../bin/auto-qc" with the arguments:
+    | key          | value         |
+    | --data       | analysis.yml  |
+    | --thresholds | threshold.yml |
+  Then the standard error should be empty
+  And the exit code should be <exit>
+  And the standard out should contain:
+    """
+    <result>
+
+    """
+
+Examples: Results
+  | value | result | exit |
+  | 1     | PASS   | 0    |
+  | -1    | FAIL   | 1    |
+

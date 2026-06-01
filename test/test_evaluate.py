@@ -55,3 +55,25 @@ def test_build_passing_qc_node_with_interpolated_msg():
     a = {"ref": {"metric_1": 2}}
     node = qc.build_qc_node(threshold_node, a)
     assert node["message"] == "Metric is 2"
+
+
+def test_build_qc_node_without_messages_produces_empty_string():
+    threshold_node = object.ThresholdNode(
+        name="Example test",
+        fail_code="ERR01",
+        rule=["greater_than", 2, 1],
+    )
+    result = qc.build_qc_node(threshold_node, {})
+    assert result["pass"] is True
+    assert result["message"] == ""
+
+
+def test_build_failing_qc_node_without_messages_produces_empty_string():
+    threshold_node = object.ThresholdNode(
+        name="Example test",
+        fail_code="ERR01",
+        rule=["greater_than", 1, 2],
+    )
+    result = qc.build_qc_node(threshold_node, {})
+    assert result["pass"] is False
+    assert result["message"] == ""
