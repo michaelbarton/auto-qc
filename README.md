@@ -145,6 +145,8 @@ thresholds:
 - `-e`, `--explain`: Print a tree explaining how every rule was evaluated, with
   each metric pointer resolved to its value and the passing/failing branches
   marked.
+- `-T`, `--test` <SUITE_FILE>: Run a suite of test cases against its thresholds
+  file (see [Testing your rules](#testing-your-rules)).
 - `-m`, `--manual`: Print the full manual and exit.
 
 `auto-qc` exits `0` when every rule passes and `1` when any rule fails or the
@@ -215,6 +217,42 @@ except AutoQCError as err:
 
 The package ships a `py.typed` marker (PEP 561), so type checkers pick up its
 annotations automatically.
+
+## Testing your rules
+
+Your thresholds are production logic, and like any logic they drift: someone
+relaxes a cutoff, a rule grows another branch, and a sample that used to fail
+quietly starts passing. `auto-qc` lets you pin that behaviour down with a test
+suite — a file that pairs sample data with the outcome you expect.
+
+```yaml
+# qc_tests.yml — run with: auto-qc --test qc_tests.yml
+thresholds: thresholds.yml
+
+cases:
+  - name: A healthy sample passes
+    data:
+      coverage: { mean_depth: 40 }
+    expect: pass
+
+  - name: Low coverage is flagged
+    data:
+      coverage: { mean_depth: 5 }
+    expect: fail
+    codes: [LOW_COVERAGE]
+```
+
+`auto-qc --test qc_tests.yml` runs every case and reports, pytest-style, which
+ones agree with the rules and which don't. It exits non-zero if any case fails,
+so it drops into CI right next to your other tests.
+
+![auto-qc --test runs each case and reports which pass and which fail](img/test.svg "auto-qc --test")
+
+Each case has a `name`, a `data` document, and an `expect` of `pass` or `fail`
+(`pass` is the default). For a failing case you can additionally assert the
+exact `codes` it should report; leave `codes` off to accept any failure. The
+`thresholds` path is resolved relative to the suite file, so a suite can live
+next to the rules it tests.
 
 ## File Syntax
 

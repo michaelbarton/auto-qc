@@ -7,7 +7,7 @@ from rich import console, markdown
 
 import auto_qc
 import auto_qc.exception
-from auto_qc import core
+from auto_qc import core, runner
 from auto_qc import explain as explain_view
 from auto_qc.evaluate import qc
 
@@ -31,8 +31,17 @@ from auto_qc.evaluate import qc
     is_flag=True,
     default=False,
 )
+@click.option(
+    "--test",
+    "-T",
+    "test_suite",
+    help="Run a suite of test cases against its thresholds file.",
+    type=click.Path(exists=True),
+)
 @click.option("--manual", "-m", help="Display the manual for auto-qc.", is_flag=True, default=False)
-def cli(data: str, thresholds: str, json_output: bool, explain: bool, manual: bool) -> None:
+def cli(
+    data: str, thresholds: str, json_output: bool, explain: bool, test_suite: str, manual: bool
+) -> None:
 
     stdout = console.Console(width=100)
     stderr = console.Console(width=100, stderr=True)
@@ -41,6 +50,14 @@ def cli(data: str, thresholds: str, json_output: bool, explain: bool, manual: bo
         with resources.path(auto_qc.__name__, "MANUAL.md") as manual_path:
             stdout.print(markdown.Markdown(manual_path.read_text()))
         exit(0)
+
+    if test_suite:
+        try:
+            passed = runner.run_file(test_suite, stdout)
+        except auto_qc.exception.AutoQCError as err:
+            stderr.print(f"[red]Errors[/red]:\n{err}")
+            sys.exit(1)
+        sys.exit(0 if passed else 1)
 
     missing_flags = []
     if not data:

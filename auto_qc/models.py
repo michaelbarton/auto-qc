@@ -45,6 +45,31 @@ class AutoQC(pydantic.BaseModel):
         return ver
 
 
+class TestCase(pydantic.BaseModel):
+    """A single case in a test suite: a data document and its expected outcome."""
+
+    name: str
+    data: dict[str, typing.Any]
+    expect: str = "pass"
+    codes: list[str] | None = None
+
+    @pydantic.field_validator("expect")
+    @classmethod
+    def validate_expect(cls, value: str) -> str:
+        """Normalise and validate the expected outcome."""
+        normalised = value.lower()
+        if normalised not in ("pass", "fail"):
+            raise ValueError("expect must be 'pass' or 'fail'")
+        return normalised
+
+
+class TestSuite(pydantic.BaseModel):
+    """A suite of test cases run against a thresholds file."""
+
+    thresholds: str
+    cases: list[TestCase]
+
+
 @dataclasses.dataclass(frozen=True)
 class AutoQCEvaluation:
     """Container for the result of evaluating the QC dictionary."""

@@ -39,6 +39,9 @@ backwards compatible** with 2.x threshold or data files.
 - An `--explain` / `-e` flag that prints a tree showing how every rule was
   evaluated, with each metric pointer resolved to its value and the passing and
   failing branches marked.
+- A `--test` / `-T` flag that runs a suite of test cases against a thresholds
+  file, pairing sample data with the outcome you expect (`pass`/`fail`, with
+  optional exact `codes`) and reporting which cases disagree with the rules.
 - "Did you mean ...?" suggestions when a rule references an unknown metric path
   or operator.
 - A small, documented public Python API: `from auto_qc import run`. Invalid
