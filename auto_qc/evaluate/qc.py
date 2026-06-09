@@ -1,15 +1,15 @@
 import typing
 
-from auto_qc import node, object, variable
+from auto_qc import models, node, variable
 
 
-def evaluate(state: object.AutoQC) -> object.AutoQCEvaluation:
+def evaluate(state: models.AutoQC) -> models.AutoQCEvaluation:
     """
     Build a dict QC containing all data about this evaluation.
     """
     nodes = [build_qc_node(x, state.data) for x in state.thresholds]
     failure_codes = sorted({x["fail_code"] for x in nodes if not x["pass"]})
-    evaluation = object.AutoQCEvaluation(
+    evaluation = models.AutoQCEvaluation(
         is_pass=not failure_codes,
         fail_codes=failure_codes,
         evaluation=nodes,
@@ -17,7 +17,9 @@ def evaluate(state: object.AutoQC) -> object.AutoQCEvaluation:
     return evaluation
 
 
-def create_variable_dict(input_node, analysis):
+def create_variable_dict(
+    input_node: models.ThresholdNode, analysis: dict[str, typing.Any]
+) -> dict[str, typing.Any]:
     return dict(
         list(
             map(
@@ -28,7 +30,7 @@ def create_variable_dict(input_node, analysis):
     )
 
 
-def does_node_pass(input_node: object.ThresholdNode, analysis):
+def does_node_pass(input_node: models.ThresholdNode, analysis: dict[str, typing.Any]) -> bool:
     """
     Evaluates the PASS/FAIL status of a QC node.
 
@@ -45,15 +47,17 @@ def does_node_pass(input_node: object.ThresholdNode, analysis):
 
 
 def create_qc_message(
-    is_pass: bool, input_node: object.ThresholdNode, variables: typing.Dict[str, typing.Any]
-):
+    is_pass: bool, input_node: models.ThresholdNode, variables: dict[str, typing.Any]
+) -> str:
     msg = input_node.pass_msg if is_pass else input_node.fail_msg
     if msg is None:
         return ""
     return msg.format(**variables)
 
 
-def build_qc_node(input_node: object.ThresholdNode, analysis: typing.Dict[str, typing.Any]):
+def build_qc_node(
+    input_node: models.ThresholdNode, analysis: dict[str, typing.Any]
+) -> dict[str, typing.Any]:
     is_pass = does_node_pass(input_node, analysis)
     variables = create_variable_dict(input_node, analysis)
 

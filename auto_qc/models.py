@@ -14,10 +14,10 @@ class ThresholdNode(pydantic.BaseModel):
 
     name: str
     fail_code: str
-    rule: typing.List[typing.Any]
-    pass_msg: typing.Optional[str] = None
-    fail_msg: typing.Optional[str] = None
-    tags: typing.Optional[typing.List[str]] = None
+    rule: list[typing.Any]
+    pass_msg: str | None = None
+    fail_msg: str | None = None
+    tags: list[str] | None = None
 
 
 class AutoQC(pydantic.BaseModel):
@@ -26,8 +26,8 @@ class AutoQC(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(coerce_numbers_to_str=True)
 
     version: str
-    thresholds: typing.List[ThresholdNode]
-    data: typing.Dict[str, typing.Any]
+    thresholds: list[ThresholdNode]
+    data: dict[str, typing.Any]
 
     @pydantic.field_validator("version")
     @classmethod
@@ -50,8 +50,8 @@ class AutoQCEvaluation:
     """Container for the result of evaluating the QC dictionary."""
 
     is_pass: bool
-    fail_codes: typing.List[str]
-    evaluation: typing.List[typing.Dict[str, typing.Any]]
+    fail_codes: list[str]
+    evaluation: list[dict[str, typing.Any]]
 
     def to_evaluation_string(self, json_output: bool) -> str:
         """Generate a string representation of the auto-qc evaluation tree.

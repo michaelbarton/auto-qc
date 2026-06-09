@@ -1,0 +1,16 @@
+version: 3.0.0
+thresholds:
+  - name: Contamination too high
+    fail_code: CONTAMINATION
+    rule: ["less_than", ":contamination/percent_human", 1.0]
+
+  - name: Coverage below protocol threshold
+    fail_code: LOW_COVERAGE
+    rule:
+      - or
+      - - and
+        - ["equals", ":sample/protocol", "Low Input DNA"]
+        - ["greater_than", ":coverage/mean_depth", 15]
+      - - and
+        - ["equals", ":sample/protocol", "Standard DNA"]
+        - ["greater_than", ":coverage/mean_depth", 30]

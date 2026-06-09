@@ -14,6 +14,14 @@ read and edit, so the thresholds can change without touching the pipeline.
 
 ## Quick Start
 
+Try it without installing anything (requires [uv](https://docs.astral.sh/uv/)):
+
+```console
+uvx auto-qc --data <DATA_FILE> --thresholds <THRESHOLD_FILE>
+```
+
+Or install it:
+
 ```console
 pip3 install auto-qc
 auto-qc --data <DATA_FILE> --thresholds <THRESHOLD_FILE>
@@ -21,6 +29,11 @@ auto-qc --data <DATA_FILE> --thresholds <THRESHOLD_FILE>
 
 `auto-qc` prints `PASS` or `FAIL: <codes>` and exits non-zero on failure, so it
 drops straight into a shell pipeline or CI step.
+
+When something fails, `--explain` shows you exactly why — it resolves every
+metric pointer to its value and marks the failing branch of each rule:
+
+![auto-qc --explain renders the evaluation tree for each rule, marking passing and failing branches](img/explain.svg "auto-qc --explain")
 
 ## Motivation
 
@@ -129,6 +142,9 @@ thresholds:
 - `-t`, `--thresholds` <THRESHOLD_FILE>: Path to the YAML/JSON file of pass/fail
   rules.
 - `-j`, `--json-output`: Print a detailed JSON report instead of `PASS`/`FAIL`.
+- `-e`, `--explain`: Print a tree explaining how every rule was evaluated, with
+  each metric pointer resolved to its value and the passing/failing branches
+  marked.
 - `-m`, `--manual`: Print the full manual and exit.
 
 `auto-qc` exits `0` when every rule passes and `1` when any rule fails or the
@@ -169,19 +185,36 @@ with its name, pass/fail state, message and tags:
 
 ## Python API
 
-`auto-qc` can also be called directly from Python. `run` takes the parsed
-thresholds and data as dictionaries and returns an evaluation object:
+`auto-qc` can also be called directly from Python. The package exposes a small
+public API: `run` takes the parsed thresholds and data as dictionaries and
+returns an evaluation object.
 
 ```python
 import yaml
-from auto_qc import main
+from auto_qc import run
 
 with open("qc_thresholds.yml") as thresholds, open("input_data.json") as data:
-    evaluation = main.run(yaml.safe_load(thresholds), yaml.safe_load(data))
+    evaluation = run(yaml.safe_load(thresholds), yaml.safe_load(data))
 
 print(evaluation.is_pass)     # False
 print(evaluation.fail_codes)  # ['LOW_COVERAGE']
 ```
+
+Invalid input — a bad version, an unknown operator, a metric path that isn't in
+the data — raises `auto_qc.AutoQCError`, so callers only need to catch a single
+exception type:
+
+```python
+from auto_qc import AutoQCError, run
+
+try:
+    evaluation = run(thresholds, data)
+except AutoQCError as err:
+    print(f"Invalid QC configuration: {err}")
+```
+
+The package ships a `py.typed` marker (PEP 561), so type checkers pick up its
+annotations automatically.
 
 ## File Syntax
 
@@ -351,6 +384,7 @@ full list of commands:
 make bootstrap   Installs python dependencies locally
 make test        Runs all unit tests defined in test/
 make feature     Runs all feature tests defined in features/
+make typecheck   Type checks the auto_qc package with mypy
 make fmt         Formats code with ruff and prettier (markdown)
 make fmt_check   Checks code formatting with ruff and prettier
 make build       Builds a python package of auto_qc in dist/

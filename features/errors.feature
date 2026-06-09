@@ -90,9 +90,9 @@ Scenario Outline: The given value does not exist
   And the exit code should be 1
 
 Examples: Errors
-  | operator     | variable            | error                                                        |
-  | greater_than | :metric_1/non_value | No matching metric path ':metric_1/non_value' found in data. |
-  | unknown      | :metric_1/val       | Unknown operator 'unknown.'                                  |
+  | operator     | variable           | error                                                                              |
+  | greater_than | :metric_1/nonvalue | No matching metric path ':metric_1/nonvalue' found in data. Did you mean ':metric_1/val'? |
+  | unknown      | :metric_1/val      | Unknown operator 'unknown.'                                                        |
 
 Scenario: A QC entry is missing a failure code
   Given I create the file "analysis.yml" with the contents:

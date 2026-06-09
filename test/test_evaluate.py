@@ -1,11 +1,11 @@
-from auto_qc import object
+from auto_qc import models
 from auto_qc.evaluate import qc
 
 METADATA = {"name": "Example test", "pass_msg": "passes", "fail_msg": "fails", "fail_code": "ERR01"}
 
 
 def test_build_passing_qc_node_with_two_literals():
-    threshold_node = object.ThresholdNode(
+    threshold_node = models.ThresholdNode(
         **{
             **METADATA,
             "rule": ["greater_than", 2, 1],
@@ -24,7 +24,7 @@ def test_build_passing_qc_node_with_two_literals():
 
 
 def test_build_failing_qc_node_with_literal_and_variable():
-    threshold_node = object.ThresholdNode(
+    threshold_node = models.ThresholdNode(
         **{
             **METADATA,
             "rule": ["less_than", ":ref/metric_1", 1],
@@ -45,7 +45,7 @@ def test_build_failing_qc_node_with_literal_and_variable():
 
 
 def test_build_passing_qc_node_with_interpolated_msg():
-    threshold_node = object.ThresholdNode(
+    threshold_node = models.ThresholdNode(
         **{
             **METADATA,
             "rule": ["less_than", ":ref/metric_1", 1],
@@ -58,7 +58,7 @@ def test_build_passing_qc_node_with_interpolated_msg():
 
 
 def test_build_qc_node_without_messages_produces_empty_string():
-    threshold_node = object.ThresholdNode(
+    threshold_node = models.ThresholdNode(
         name="Example test",
         fail_code="ERR01",
         rule=["greater_than", 2, 1],
@@ -69,7 +69,7 @@ def test_build_qc_node_without_messages_produces_empty_string():
 
 
 def test_build_failing_qc_node_without_messages_produces_empty_string():
-    threshold_node = object.ThresholdNode(
+    threshold_node = models.ThresholdNode(
         name="Example test",
         fail_code="ERR01",
         rule=["greater_than", 1, 2],

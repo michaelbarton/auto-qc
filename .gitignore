@@ -1,8 +1,12 @@
 .idea
 tmp
 *.pyc
+__pycache__/
 .DS_Store
 dist
+.coverage
+.mypy_cache
+.pytest_cache
 *.egg-info
 vendor
 log

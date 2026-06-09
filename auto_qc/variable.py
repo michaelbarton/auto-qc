@@ -10,7 +10,7 @@ def is_variable(var: str) -> bool:
     return isinstance(var, str) and var.startswith(":")
 
 
-def is_variable_path_valid(data: typing.Dict[str, typing.Any], path: str) -> bool:
+def is_variable_path_valid(data: dict[str, typing.Any], path: str) -> bool:
     """
     Does the variable path have a matching path in the analysis?
 
@@ -26,7 +26,7 @@ def is_variable_path_valid(data: typing.Dict[str, typing.Any], path: str) -> boo
     return True
 
 
-def get_variable_value(data: typing.Dict[str, typing.Any], path: str) -> typing.Any:
+def get_variable_value(data: dict[str, typing.Any], path: str) -> typing.Any:
     """Get variable's value by traversing its path into the data file.
 
     Args:
@@ -49,5 +49,5 @@ def get_variable_value(data: typing.Dict[str, typing.Any], path: str) -> typing.
     return var_value
 
 
-def get_variable_names(qc_node):
+def get_variable_names(qc_node: list[typing.Any]) -> list[str]:
     return [x for x in functional.flatten(qc_node) if is_variable(x)]

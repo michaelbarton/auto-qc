@@ -12,6 +12,7 @@ The following commands are available for building and testing:
   $(HLT)make bootstrap$(NC)   Installs python dependencies locally
   $(HLT)make test$(NC)        Runs all unit tests defined in the test/ directory
   $(HLT)make feature$(NC)     Runs all feature tests defined in the features/ directory
+  $(HLT)make typecheck$(NC)   Type checks the auto_qc package with mypy
   $(HLT)make fmt$(NC)         Formats code with ruff and prettier (markdown)
   $(HLT)make fmt_check$(NC)   Checks code formatting with ruff and prettier
   $(HLT)make build$(NC)       Builds a python package of auto_qc in dist/
@@ -22,7 +23,7 @@ export HELP
 help:
 	clear && echo "$$HELP"
 
-all: fmt_check test feature build
+all: fmt_check typecheck test feature build
 
 bootstrap:
 	uv sync
@@ -43,10 +44,13 @@ test:
 feature:
 	uv run behave --stop
 
+typecheck:
+	uv run mypy
+
 build:
 	uv build
 
 clean:
 	rm -f dist/*
 
-.PHONY: help all bootstrap fmt fmt_check test feature build clean
+.PHONY: help all bootstrap fmt fmt_check typecheck test feature build clean
