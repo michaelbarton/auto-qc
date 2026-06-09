@@ -38,7 +38,7 @@ class AutoQC(pydantic.BaseModel):
                 textwrap.dedent(
                     f"""
             Incompatible threshold file syntax: {ver}.
-            Please update the syntax to version >= {version.__version__}.0.0.
+            Please update the syntax to version >= {version.__version__}.
                     """
                 )
             )

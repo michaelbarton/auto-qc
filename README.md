@@ -1,4 +1,16 @@
-# auto-qc - A python tool for storing business logic as data.
+# auto-qc
+
+[![Tests](https://github.com/michaelbarton/auto-qc/actions/workflows/tests.yml/badge.svg)](https://github.com/michaelbarton/auto-qc/actions/workflows/tests.yml)
+[![PyPI version](https://img.shields.io/pypi/v/auto-qc.svg)](https://pypi.org/project/auto-qc/)
+[![Python versions](https://img.shields.io/pypi/pyversions/auto-qc.svg)](https://pypi.org/project/auto-qc/)
+[![License: BSD-3-Clause](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg)](LICENSE.txt)
+
+**Keep your pass/fail rules in a data file, not buried in your code.**
+
+`auto-qc` reads a file of metrics and a file of pass/fail rules, evaluates one
+against the other, and tells you whether the metrics pass — and if not, exactly
+which rules failed. The rules live in plain YAML/JSON that a non-programmer can
+read and edit, so the thresholds can change without touching the pipeline.
 
 ## Quick Start
 
@@ -7,307 +19,355 @@ pip3 install auto-qc
 auto-qc --data <DATA_FILE> --thresholds <THRESHOLD_FILE>
 ```
 
+`auto-qc` prints `PASS` or `FAIL: <codes>` and exits non-zero on failure, so it
+drops straight into a shell pipeline or CI step.
+
 ## Motivation
 
-Auto QC is designed for business logic where process failures can be determined
-with clear thresholds rules, such as "defects per month > 10", but change often
-enough that hard-coding them into software with `if/else` or `case` statements
-would require regular changes to the code to adapt them according to moving
-requirements.
+`auto-qc` came out of running quality control on high-throughput DNA sequencing
+at the Joint Genome Institute. Every sequencing run produces a pile of metrics
+for each sample — contamination, coverage depth, base quality — and every sample
+has to be judged pass or fail against a set of thresholds.
 
-Auto QC solves this by providing a JSON/YAML data format for the business
-thresholds, which are evaluated against metrics stored in separate file. If any
-of the threshold rules evaluate to `False`, auto QC will report the
-corresponding error code associated with the failing rule.
+The catch is that those thresholds are not fixed. They move as protocols evolve,
+as instruments are recalibrated, and as the lab learns what "good" looks like.
+And the people who own those thresholds are the analysts and lab leads, not the
+software engineers who maintain the pipeline.
 
-## Simple Example
+Baking the rules into the pipeline as `if`/`else` statements meant that every
+time a cutoff moved, someone had to change code, get it reviewed, and redeploy —
+and you still had no clean record of _why_ a particular sample failed.
 
-![Auto QC Simple Example](img/simple_example.svg "Example Auto QC Files")
+`auto-qc` pulls that logic out of the code and into a data file:
 
-### Explanation
+- **Analysts own the rules.** Thresholds live in a YAML/JSON file anyone can
+  read and edit. No code change, no redeploy.
+- **The pipeline just runs a command.** It calls `auto-qc`, reads the exit code,
+  and optionally parses the JSON report of which rules failed and why.
+- **Failures are explained.** Each rule carries a `fail_code` (and an optional
+  human-readable message), so a failing sample comes with a machine-readable
+  reason instead of a mystery.
 
-Assume metrics for a widget looks like the data below. This kind of data may be
-captured during the manufacturing process, or from data aggregated from logs.
+Although it was born in a sequencing lab, the same shape of problem shows up
+anywhere pass/fail rules change more often than the code around them —
+manufacturing tolerances, data-pipeline quality gates, SLA checks, release
+readiness. If you have ever hard-coded a threshold and then had to redeploy to
+move it, `auto-qc` is for you.
+
+## How It Works
+
+![auto-qc takes a data file of metrics and a thresholds file of rules, and reports a pass or fail](img/simple_example.svg "auto-qc evaluates metrics against rules")
+
+Say a single sequencing sample produces these metrics:
 
 ```json
 {
-  "foo": 14.2,
-  "bar": -2
+  "contamination": { "percent_human": 0.4 },
+  "coverage": { "mean_depth": 18.6 }
 }
 ```
 
-And the threshold rules that the business cares about look like this:
+And the QC rules the lab currently cares about look like this:
 
 ```yaml
 version: 3.0.0
 thresholds:
-  - fail_code: "FOO_FAILURE"
-    rule: ["greater_than", ":foo", 10]
-  - fail_code: "BAR_FAILURE"
-    rule: ["greater_than", ":bar", 0]
+  - name: Contamination too high
+    fail_code: CONTAMINATION
+    rule: ["less_than", ":contamination/percent_human", 1.0]
+  - name: Coverage too low
+    fail_code: LOW_COVERAGE
+    rule: ["greater_than", ":coverage/mean_depth", 30]
 ```
 
-Running this with `auto-qc` would report the error `BAR_FAILURE`, because the
-value for `bar` in the data file is -2, while the thresholds includes a rule
-that the pointer to the value for `:bar` should not be below 0. Every rule
-defined in the `thresholds` field should evaluate to `True`. If any evaluate to
-`False` then auto QC will return the associated string in the `fail_code` field.
+Running `auto-qc` against these two files reports `FAIL: LOW_COVERAGE`. The
+contamination rule passes (`0.4` is less than `1.0`), but the coverage rule
+fails because the mean depth of `18.6` is not greater than `30`.
 
-### More-complex example
+A string beginning with `:` is a **pointer** into the data file:
+`:coverage/mean_depth` reads the `mean_depth` field nested under `coverage`.
+Every rule in the `thresholds` list must evaluate to `True` for the sample to
+pass. For each rule that evaluates to `False`, `auto-qc` reports the associated
+`fail_code`.
 
-More complex examples can be built using Boolean expressions such as `AND` or
-`OR`. Assume that the thresholds might depend on the type of widget being
-manufactured, where cheaper widgets could have more lax thresholds. This can be
-handled by encoding the widget type in the data file.
+### A More Complex Rule
+
+Rules are nestable [s-expressions][sexp], so they can combine `and`, `or` and
+`not` to express richer logic. Suppose the acceptable coverage depends on the
+library protocol, which is also recorded in the data file:
 
 ```json
 {
-  "widget_type": "cheap",
-  "foo": 14.2,
-  "bar": -2
+  "sample": { "protocol": "Low Input DNA" },
+  "coverage": { "mean_depth": 18.6 }
 }
 ```
 
-Then the thresholds file can use a mixture of `OR` and `AND` expressions to test
-the value of `:bar` based on the value of the `:widget_type` field.
+A single rule can then require a higher depth for standard libraries while
+allowing a lower depth for low-input ones:
 
 ```yaml
 version: 3.0.0
 thresholds:
-  - fail_code: "FOO_FAILURE"
-    rule: ["greater_than", ":foo", 10]
-  - fail_code: "BAR_FAILURE"
+  - name: Coverage below protocol threshold
+    fail_code: LOW_COVERAGE
     rule:
-      - OR
-      - - AND
-        - ["equals", ":widget_type", "cheap"]
-        - ["greater_than", ":bar", -5]
-      - - AND
-        - ["equals", ":widget_type", "expensive"]
-        - ["greater_than", ":bar", 2]
+      - or
+      - - and
+        - ["equals", ":sample/protocol", "Low Input DNA"]
+        - ["greater_than", ":coverage/mean_depth", 15]
+      - - and
+        - ["equals", ":sample/protocol", "Standard DNA"]
+        - ["greater_than", ":coverage/mean_depth", 30]
 ```
+
+[sexp]: https://en.wikipedia.org/wiki/S-expression
 
 ## Command Line Options
 
-- `-d`, `--data` <DATA_FILE>: The path to the file containing input data to be
-  checked.
+- `-d`, `--data` <DATA_FILE>: Path to the YAML/JSON file of metrics to check.
+- `-t`, `--thresholds` <THRESHOLD_FILE>: Path to the YAML/JSON file of pass/fail
+  rules.
+- `-j`, `--json-output`: Print a detailed JSON report instead of `PASS`/`FAIL`.
+- `-m`, `--manual`: Print the full manual and exit.
 
-- `-t`, `--thresholds` <THRESHOLD_FILE>: The path to the file containing the
-  pass/fail thresholds.
+`auto-qc` exits `0` when every rule passes and `1` when any rule fails or the
+input files are invalid.
 
-- `-j`, `--json-output`: Generate output as JSON.
+## Output
+
+By default `auto-qc` prints a single line: `PASS`, or `FAIL:` followed by the
+`fail_code` of every rule that failed.
+
+With `--json-output` it prints a structured report that downstream tooling can
+consume — the overall result, the list of failing codes, and an entry per rule
+with its name, pass/fail state, message and tags:
+
+```json
+{
+  "auto_qc_version": "3.0.0",
+  "fail_codes": ["LOW_COVERAGE"],
+  "pass": false,
+  "qc": [
+    {
+      "fail_code": "CONTAMINATION",
+      "message": "",
+      "name": "Contamination too high",
+      "pass": true,
+      "tags": []
+    },
+    {
+      "fail_code": "LOW_COVERAGE",
+      "message": "",
+      "name": "Coverage too low",
+      "pass": false,
+      "tags": []
+    }
+  ]
+}
+```
 
 ## Python API
 
-Auto QC can be used in python code as follows:
+`auto-qc` can also be called directly from Python. `run` takes the parsed
+thresholds and data as dictionaries and returns an evaluation object:
 
 ```python
+import yaml
 from auto_qc import main
-evaluation = main.run(thresholds, data)
+
+with open("qc_thresholds.yml") as thresholds, open("input_data.json") as data:
+    evaluation = main.run(yaml.safe_load(thresholds), yaml.safe_load(data))
+
+print(evaluation.is_pass)     # False
+print(evaluation.fail_codes)  # ['LOW_COVERAGE']
 ```
 
 ## File Syntax
 
-### Source Data File
+### Data File
 
-A data file is a YAML/JSON file containing all the data used to make decisions.
-This file should contain nested dictionaries. An example data file might look
-like:
+The data file is a YAML/JSON file of nested dictionaries containing all the
+metrics used to make decisions. There are no required fields — it is just your
+data. For example:
 
 ```yaml
 ---
-manufacturing:
-  defective_parts_per_million_per_month: 7
-  mean_throughput_per_machine_per_month: 1462.8
-customer:
-  percent_on_time_delivery: 97.3
-  returns_per_month: 31
+sample:
+  id: SRX-4521
+  protocol: Low Input DNA
+contamination:
+  percent_human: 0.4
+  percent_phix: 0.02
+coverage:
+  mean_depth: 18.6
+  percent_bases_above_30x: 88.1
+quality:
+  percent_q30: 91.2
 ```
 
-### Source Threshold File
+### Threshold File
 
-A threshold file specifies the QC criteria or business logic to make a pass or
-fail based on the fields and metrics in the data above file. The threshold file
-is a YAML/JSON dictionary contains two fields `version` and `thresholds`. These
-fields are defined as:
+The threshold file specifies the QC criteria. It is a YAML/JSON dictionary with
+two fields:
 
-- **version** - This field is checked by auto-qc to determine if the QC
-  threshold syntax matches that of the version of auto-qc being run. For the
-  current version of auto-qc this should be `3.0.0`. If the `version` field is
-  out of date, e.g. `2.x`, then auto-qc will immediately fail.
+- **version** — Checked by `auto-qc` to confirm the file matches the syntax of
+  the version being run. For this release it should be `3.0.0`. If the major
+  version is out of date (e.g. `2.x`), `auto-qc` fails immediately rather than
+  silently misreading the file.
 
-- **thresholds** - This field should contain a list of dictionaries, where each
-  entry defines a rule that should be evaluated against the metrics in the data
-  file. The threshold dictionaries are defined as follows in the next section.
+- **thresholds** — A list of rule dictionaries, each described below.
 
-### Evaluated Rules
+### Rules
 
-Use the example data above, a simple threshold file with two business rules
-might look like:
+Using the data above, a threshold file with two rules might look like:
 
 ```yaml
 version: 3.0.0
 thresholds:
-  - name: Dropping throughput rate
-    fail_code: ERR_001
+  - name: Contamination too high
+    fail_code: CONTAMINATION
+    fail_msg: "Human contamination is {contamination/percent_human}%"
     rule:
-      - LESS_THAN
-      - ":manufacturing/mean_throughput_per_machine_per_month"
-      - 10000
+      - less_than
+      - ":contamination/percent_human"
+      - 1.0
 
-  - name: Increasing defects
-    fail_code: ERR_002
+  - name: Coverage too low
+    fail_code: LOW_COVERAGE
     rule:
-      - OR
-      - [
-          GREATER_THAN,
-          ":manufacturing/defective_parts_per_million_per_month",
-          100,
-        ]
-      - ["GREATER_THAN", ":customer/returns_per_month", 10]
+      - or
+      - ["greater_than", ":coverage/mean_depth", 30]
+      - ["greater_than", ":coverage/percent_bases_above_30x", 90]
 ```
 
-The first rule 'Dropping throughput rate' checks the value in the data file for
-the path `:manufacturing/mean_throughput_per_machine_per_month` ensures it's
-greater than `10000`.
+The first rule checks that `:contamination/percent_human` is below `1.0`. The
+second is a compound rule joined by `OR`: the sample passes if _either_ the mean
+depth is above `30` _or_ at least `90`% of bases are above 30x coverage. This
+shows that every rule is a list beginning with an operator, and that rules can
+be nested arbitrarily.
 
-The second rule 'Increasing defects' is a compound rule joined by an `OR`
-operator, and checks two metrics in the data file to see if either are above a
-given threshold file. This second rule illustrates that all business rules are
-lists beginning with an operator, and can be arbitrarily nested. The full list
-of available operators is given below.
+Each rule dictionary contains:
 
-Each evaluation rule dictionary contains:
+- **name**: A unique name for the rule. _(required)_
 
-- **name**: A unique name for this business rule.
+- **fail_code**: An identifier for this kind of failure, reported when the rule
+  evaluates to fail. _(required)_
 
-- **fail_msg**: A message to generate if this entry QC entry fails. Python
-  string interpolation can be used to customise this message with values from
-  the data file.
+- **rule**: The s-expression to evaluate. _(required)_ It is made up of:
 
-- **pass_msg**: A message to generate if this entry passes. Python string
-  interpolation may also be used to customise this message with values from the
-  data file.
+  - **operator** — The test to apply, such as `greater_than` or a Boolean
+    operator such as `and`. The full list is below.
 
-- **fail_code**: An ID for the kind of failure identified if this entry
-  evaluates to fail. The list of failure codes is returned in the JSON output
-  with the flag.
+  - **pointer** — A value from the data file. A leading `:` marks the string as
+    a pointer; the rest is the `/`-separated path to the value.
 
-- **tags**: A optional list of tags for the QC entry. These tags are returned in
-  the JSON output if `--json-output` is used. These have no effect on the
-  evaluation of the tool, but can be useful for downstream processing of the
-  generated JSON output. E.g. process the failures and group by tags.
+  - **literal** — A literal value to compare the pointer against.
 
-- **rule**:
+- **fail_msg**: _(optional)_ A message generated when the rule fails. Python
+  string interpolation can pull in values from the data file, e.g.
+  `{coverage/mean_depth}`.
 
-  - **operator** - An operator to test the QC value. This may be mathematical
-    comparison operators such as 'greater_than' or Boolean operators such as
-    'AND'. The list of allowed operators is described in the section below.
+- **pass_msg**: _(optional)_ A message generated when the rule passes, with the
+  same interpolation support.
 
-  - **analysis value** - The value from the data file that should be tested. The
-    colon ':' indicates that this is a pointer to a value in the data file. The
-    remainder of this string is the path to the value to be evaluated against.
+- **tags**: _(optional)_ A list of tags returned in the JSON output. They have
+  no effect on evaluation but are useful for grouping or filtering failures
+  downstream.
 
-  - **literal value** - A literal value that to compare with the reference
-    value.
+### Available Operators
 
-### AVAILABLE OPERATORS
+Operator names are case-insensitive, so `or` and `OR` are equivalent.
 
-**equals** / **not_equals** - Test whether two values are equal or not.
+**equals** / **not_equals** — Test whether two values are equal.
 
 ```yaml
 - equals
-- ":run_metadata/protocol"
+- ":sample/protocol"
 - Low Input DNA
 ```
 
-**greater_than** / **less_than** / **greater_equal_than** /
-**less_equal_than** - Test whether one numeric value is greater/smaller than
-another.
+**greater_than** / **less_than** / **greater_equal_than** / **less_equal_than**
+— Test whether one numeric value is greater or smaller than another.
 
 ```yaml
-- greater_than
-- ":human_contamination/metrics/percent_contamination"
-- 5
+- less_than
+- ":contamination/percent_human"
+- 1.0
 ```
 
-**and** - Test whether two values are both true. The example here illustrates
-that metrics can be nested. For instance here, the two arguments to the **and**
-operator are themselves thresholds.
+**and** — Test whether all arguments are true. The arguments here are themselves
+rules, showing that rules nest.
 
 ```yaml
 - and
-- - greater_than
-  - ":cat_contamination/metrics/percent_contamination"
-  - 5
-- - greater_than
-  - ":dog_contamination/metrics/percent_contamination"
-  - 5
+- - less_than
+  - ":contamination/percent_human"
+  - 1.0
+- - less_than
+  - ":contamination/percent_phix"
+  - 0.1
 ```
 
-**or** - Test whether any values are true.
+**or** — Test whether any argument is true.
 
 ```yaml
 - or
 - - greater_than
-  - ":cat_contamination/metrics/percent_contamination"
-  - 5
+  - ":coverage/mean_depth"
+  - 30
 - - greater_than
-  - ":dog_contamination/metrics/percent_contamination"
-  - 5
+  - ":quality/percent_q30"
+  - 90
 ```
 
-**not** - Flips the Boolean value
+**not** — Flip a Boolean value.
 
 ```yaml
 - not
-- ":cat_contamination/is_contaminated"
+- ":sample/is_control"
 ```
 
-**is_in** / **is_not_in** - Test whether a value is in a list of values. Note
-that the list of values must begin with the **list** operator.
+**is_in** / **is_not_in** — Test whether a value is in a list of values. The
+list must begin with the **list** operator.
 
 ```yaml
 - is_in
-- ":cat_contamination/name_of_cat"
+- ":sample/protocol"
 - - list
-  - "Chase No Face"
-  - "Colonel Meow"
-  - "Felicette"
-  - "Mrs. Chippy"
-  - "Peter, the Lord's Cat"
-  - "Tiddles"
-  - "Wilberforce"
+  - Low Input DNA
+  - Standard DNA
+  - PCR-free
 ```
 
 ## Building and Testing
 
-Type `make` to get a full list of available commands for building and testing.
-The available commands are:
-
 This project uses [uv](https://docs.astral.sh/uv/) for dependency management and
 [ruff](https://docs.astral.sh/ruff/) for linting and formatting. Markdown is
-formatted with [prettier](https://prettier.io/) via `npx`.
+formatted with [prettier](https://prettier.io/) via `npx`. Type `make` for the
+full list of commands:
 
 ```console
 make bootstrap   Installs python dependencies locally
-make test        Runs all unit tests defined in the test/
-make feature     Runs all feature tests defined in the features/
+make test        Runs all unit tests defined in test/
+make feature     Runs all feature tests defined in features/
 make fmt         Formats code with ruff and prettier (markdown)
 make fmt_check   Checks code formatting with ruff and prettier
 make build       Builds a python package of auto_qc in dist/
 ```
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development and release workflow.
+
 ## Versioning
 
-This project aims to adhere to [Semantic Versioning](http://semver.org/) as much
-as possible. The project version history is described in the CHANGELOG. The
-version number is single-sourced from `auto_qc/version.py`; bump a release by
-editing the `__version__` string there.
+This project follows [Semantic Versioning](http://semver.org/); the history is
+recorded in the [CHANGELOG](CHANGELOG.md). The version number is single-sourced
+from `auto_qc/version.py` — bump a release by editing the `__version__` string
+there.
 
 ## Licence
 
-auto-qc Copyright (c) 2017-2021, The Regents of the University of California,
+auto-qc Copyright (c) 2017-2026, The Regents of the University of California,
 through Lawrence Berkeley National Laboratory (subject to receipt of any
 required approvals from the U.S. Dept. of Energy). All rights reserved.
 
@@ -324,13 +384,13 @@ its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the
 Software to reproduce, prepare derivative works, distribute copies to the
 public, perform publicly and display publicly, and to permit others to do so.
 
-## AUTHOR
+## Author
 
 Michael Barton <mail@michaelbarton.me.uk>
 
-## HISTORY
+## History
 
-- 3.0.0 - Mon 08 Feb 2021
+- 3.0.0 - Mon 01 Jun 2026
 - 2.0.0 - Mon 20 Jun 2016
 - 1.1.0 - Mon 27 Apr 2015
 - 1.0.0 - Fri 15 Aug 2014

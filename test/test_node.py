@@ -11,6 +11,16 @@ def test_eval_less_than_with_two_literals():
     assert not node.evaluate_rule(n)
 
 
+def test_operators_are_case_insensitive():
+    assert node.is_operator("OR")
+    assert node.is_operator("Greater_Than")
+    assert node.evaluate_rule(["AND", ["GREATER_THAN", 2, 1], ["greater_than", 3, 1]])
+
+
+def test_non_string_is_not_an_operator():
+    assert not node.is_operator(5)
+
+
 def test_eval_true_with_nested_lists():
     n = ["and", ["greater_than", 2, 1], ["greater_than", 2, 1]]
     assert node.evaluate_rule(n)
@@ -66,4 +76,4 @@ def test_get_all_operators_with_nested_threshold():
 
 def test_get_all_operators_with_doc_string():
     n = ["less_than", 2, 1]
-    node.get_all_operators(n) == ["less_than"]
+    assert node.get_all_operators(n) == ["less_than"]

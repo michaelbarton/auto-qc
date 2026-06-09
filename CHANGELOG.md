@@ -3,17 +3,55 @@
 All notable changes to this project will be documented in this file. This
 project adheres to [Semantic Versioning](http://semver.org/).
 
-## 3.0.0 - Unreleased
+## 3.0.0 - 2026-06-01
 
-- Update code from python 2.7 => ^3.7.
-- Rename flag: `--threshold-file` => `--thresholds`
-- Rename flag: `--analysis-file` => `--data`
-- Simplify the format of the `data` file: removed required metadata fields. Now
-  is just a plain JSON / YAML file.
-- Simplify the format of the `thresholds` file. Path to `auto-qc` version
-  changed from `metadata.auto_qc.version` => `version`.
-- Returns a non-zero exit if the QC tests do not pass.
-- Remove the fn library dependency. This library is no longer maintained.
+This is a major release that ports auto-qc to Python 3, modernises the packaging
+and command-line interface, and simplifies the input file formats. It is **not
+backwards compatible** with 2.x threshold or data files.
+
+### Changed
+
+- Ported the codebase from Python 2.7 to Python 3 (now requires Python 3.10+).
+- Rewrote the command-line interface using
+  [click](https://click.palletsprojects.com/):
+  - Renamed flag `--analysis-file` / `-a` => `--data` / `-d`.
+  - Renamed flag `--threshold-file` / `-t` => `--thresholds` / `-t`.
+  - Kept `--json-output` / `-j`.
+- Simplified the **data** file format: it is now a plain JSON / YAML dictionary
+  with no required metadata wrapper.
+- Simplified the **thresholds** file format: a top-level `version` and
+  `thresholds` list, where each entry is a dictionary with `name`, `fail_code`
+  and `rule` (and optional `pass_msg`, `fail_msg` and `tags`). The version field
+  moved from `metadata.auto_qc.version` => `version`.
+- Human-readable output now prints `PASS`, or `FAIL: <fail_code>, ...` listing
+  the codes of every rule that failed.
+- Threshold and data files are now validated up front with
+  [pydantic](https://docs.pydantic.dev/); invalid files report a clear error and
+  exit non-zero.
+
+### Added
+
+- A non-zero exit code is returned when any QC rule fails, so auto-qc can be
+  used directly in pipelines and CI.
+- Support for list-valued data references (used by the `is_in` / `is_not_in`
+  operators).
+- An `examples/` directory with a runnable example.
+
+### Removed
+
+- Removed the unmaintained `fn`, `funcy` and `python-termstyle` dependencies.
+  Runtime dependencies are now `click`, `pydantic`, `rich` and `PyYAML`.
+
+### Packaging & tooling
+
+- Replaced `setup.py` / `tox` with a PEP 621 `pyproject.toml` built by
+  [hatchling](https://hatch.pypa.io/), managed with
+  [uv](https://docs.astral.sh/uv/).
+- The version number is single-sourced from `auto_qc/version.py`.
+- Linting and formatting moved to [ruff](https://docs.astral.sh/ruff/); Markdown
+  is formatted with [prettier](https://prettier.io/).
+- Added a GitHub Actions workflow that runs the unit and feature tests, lints,
+  and builds the package on every push and pull request.
 
 ## 2.0.0 - 2018-02-21
 
