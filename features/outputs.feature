@@ -36,6 +36,14 @@ Scenario Outline: Generating JSON formatted output
         "pass": <pass>,
         "qc": [
             {
+                "explain": {
+                    "operator": "greater_than",
+                    "result": <pass>,
+                    "args": [
+                        {"variable": ":value", "value": 2},
+                        {"literal": <literal>}
+                    ]
+                },
                 "fail_code": "ERR00001",
                 "message": "<msg>",
                 "name": "example test",

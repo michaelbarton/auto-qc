@@ -122,3 +122,57 @@ Scenario: A QC entry is missing a failure code
     thresholds.0.fail_code
     """
   And the exit code should be 1
+
+Scenario: A rule compares incompatible types
+  Given I create the file "analysis.yml" with the contents:
+   """
+   coverage:
+     mean_depth: not a number
+   """
+  And I create the file "threshold.yml" with the contents:
+   """
+   version: 3.0.0
+   thresholds:
+   - name: Coverage too low
+     fail_code: LOW_COVERAGE
+     rule: ["greater_than", ":coverage/mean_depth", 30]
+   """
+  When I run the command "auto-qc" with the arguments:
+    | key              | value         |
+    | --data           | analysis.yml  |
+    | --thresholds     | threshold.yml |
+  Then the standard out should be empty
+  And the standard error should contain:
+    """
+    Rule 'Coverage too low' (LOW_COVERAGE)
+    """
+  And the standard error should contain:
+    """
+    could not compare
+    """
+  And the exit code should be 1
+
+Scenario: An operator is given the wrong number of arguments
+  Given I create the file "analysis.yml" with the contents:
+   """
+   sample:
+     is_control: false
+   """
+  And I create the file "threshold.yml" with the contents:
+   """
+   version: 3.0.0
+   thresholds:
+   - name: Not a control
+     fail_code: CONTROL
+     rule: ["not", ":sample/is_control", true]
+   """
+  When I run the command "auto-qc" with the arguments:
+    | key              | value         |
+    | --data           | analysis.yml  |
+    | --thresholds     | threshold.yml |
+  Then the standard out should be empty
+  And the standard error should contain:
+    """
+    Operator 'not' takes exactly 1 argument but got 2.
+    """
+  And the exit code should be 1
