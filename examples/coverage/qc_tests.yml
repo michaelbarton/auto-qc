@@ -1,0 +1,34 @@
+# Test cases for thresholds.yml. Run with: auto-qc --test qc_tests.yml
+thresholds: thresholds.yml
+
+cases:
+  - name: A healthy low-input sample passes
+    data:
+      sample: { protocol: Low Input DNA }
+      contamination: { percent_human: 0.4 }
+      coverage: { mean_depth: 40 }
+    expect: pass
+
+  - name: Low-input coverage below 15x is flagged
+    data:
+      sample: { protocol: Low Input DNA }
+      contamination: { percent_human: 0.4 }
+      coverage: { mean_depth: 10 }
+    expect: fail
+    codes: [LOW_COVERAGE]
+
+  - name: Standard DNA needs 30x, not 25x
+    data:
+      sample: { protocol: Standard DNA }
+      contamination: { percent_human: 0.4 }
+      coverage: { mean_depth: 25 }
+    expect: fail
+    codes: [LOW_COVERAGE]
+
+  - name: A contaminated sample is rejected
+    data:
+      sample: { protocol: Low Input DNA }
+      contamination: { percent_human: 2.0 }
+      coverage: { mean_depth: 40 }
+    expect: fail
+    codes: [CONTAMINATION]

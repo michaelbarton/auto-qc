@@ -51,3 +51,39 @@ Examples: Outputs
   | literal | pass   | msg    | code         | exit |
   | 0       | true   | passes | []           | 0    |
   | 2       | false  | fails  | ["ERR00001"] | 1    |
+
+Scenario: Explaining how a rule was evaluated
+  Given I create the file "analysis.yml" with the contents:
+   """
+   coverage:
+     mean_depth: 18.6
+   """
+  And I create the file "threshold.yml" with the contents:
+   """
+   version: 3.0.0
+   thresholds:
+   - name: Coverage too low
+     fail_code: LOW_COVERAGE
+     rule:
+       - greater_than
+       - :coverage/mean_depth
+       - 30
+   """
+  When I run the command "auto-qc" with the arguments:
+     | key              | value         |
+     | --data           | analysis.yml  |
+     | --thresholds     | threshold.yml |
+     | --explain        |               |
+  Then the exit code should be 1
+  And the standard out should contain:
+    """
+    Coverage too low
+    """
+  And the standard out should contain:
+    """
+    LOW_COVERAGE
+    """
+  And the standard out should contain:
+    """
+    18.6
+    """

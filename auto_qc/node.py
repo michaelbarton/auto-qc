@@ -5,7 +5,7 @@ import typing
 from auto_qc import variable
 from auto_qc.util import functional
 
-OPERATORS = {
+OPERATORS: dict[str, typing.Callable[..., typing.Any]] = {
     "greater_than": operator.gt,
     "greater_equal_than": operator.ge,
     "less_than": operator.lt,
@@ -21,20 +21,20 @@ OPERATORS = {
 }
 
 
-def is_operator(v):
+def is_operator(v: typing.Any) -> bool:
     return isinstance(v, str) and v.lower() in OPERATORS
 
 
-def has_doc_dict(qc_node):
+def has_doc_dict(qc_node: list[typing.Any]) -> bool:
     return isinstance(qc_node[0], dict)
 
 
-def get_all_operators(qc_node):
+def get_all_operators(qc_node: list[typing.Any]) -> list[typing.Any]:
     """
     Returns all operators listed in a QC node
     """
 
-    def _walk_node(n):
+    def _walk_node(n: list[typing.Any]) -> list[typing.Any]:
         operator_, rest = n[0], n[1:]
         return [operator_, *f(rest)]
 
@@ -43,7 +43,7 @@ def get_all_operators(qc_node):
     return functional.flatten(_walk_node(qc_node))
 
 
-def eval_variables(analyses: typing.Dict[str, typing.Any], rule: typing.List[typing.Any]):
+def eval_variables(analyses: dict[str, typing.Any], rule: list[typing.Any]) -> list[typing.Any]:
     """
     Replace all variables in a node s-expression with their referenced literal
     value.
@@ -61,7 +61,7 @@ def eval_variables(analyses: typing.Dict[str, typing.Any], rule: typing.List[typ
       [>, 1, 2]
     """
 
-    def _eval(n):
+    def _eval(n: typing.Any) -> typing.Any:
         if variable.is_variable(n):
             return variable.get_variable_value(analyses, n)
         else:
@@ -72,7 +72,7 @@ def eval_variables(analyses: typing.Dict[str, typing.Any], rule: typing.List[typ
     )
 
 
-def evaluate_rule(node: typing.List[typing.Any]) -> bool:
+def evaluate_rule(node: list[typing.Any]) -> typing.Any:
     """
     Evaluate an s-expression by applying the operator to the rest of the arguments.
 

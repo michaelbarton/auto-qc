@@ -35,7 +35,20 @@ backwards compatible** with 2.x threshold or data files.
   used directly in pipelines and CI.
 - Support for list-valued data references (used by the `is_in` / `is_not_in`
   operators).
-- An `examples/` directory with a runnable example.
+- An `examples/` directory with runnable examples.
+- An `--explain` / `-e` flag that prints a tree showing how every rule was
+  evaluated, with each metric pointer resolved to its value and the passing and
+  failing branches marked.
+- A `--test` / `-T` flag that runs a suite of test cases against a thresholds
+  file, pairing sample data with the outcome you expect (`pass`/`fail`, with
+  optional exact `codes`) and reporting which cases disagree with the rules.
+- "Did you mean ...?" suggestions when a rule references an unknown metric path
+  or operator.
+- A small, documented public Python API: `from auto_qc import run`. Invalid
+  input now raises `auto_qc.AutoQCError` rather than leaking pydantic's
+  `ValidationError` to callers.
+- A `py.typed` marker (PEP 561) so downstream type checkers use auto-qc's
+  annotations.
 
 ### Removed
 
@@ -51,7 +64,9 @@ backwards compatible** with 2.x threshold or data files.
 - Linting and formatting moved to [ruff](https://docs.astral.sh/ruff/); Markdown
   is formatted with [prettier](https://prettier.io/).
 - Added a GitHub Actions workflow that runs the unit and feature tests, lints,
-  and builds the package on every push and pull request.
+  and builds the package on every push and pull request. Tests run across a
+  Python 3.10–3.13 matrix, and the package is type checked with
+  [mypy](https://mypy-lang.org/).
 
 ## 2.0.0 - 2018-02-21
 

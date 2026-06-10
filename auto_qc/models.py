@@ -14,10 +14,10 @@ class ThresholdNode(pydantic.BaseModel):
 
     name: str
     fail_code: str
-    rule: typing.List[typing.Any]
-    pass_msg: typing.Optional[str] = None
-    fail_msg: typing.Optional[str] = None
-    tags: typing.Optional[typing.List[str]] = None
+    rule: list[typing.Any]
+    pass_msg: str | None = None
+    fail_msg: str | None = None
+    tags: list[str] | None = None
 
 
 class AutoQC(pydantic.BaseModel):
@@ -26,8 +26,8 @@ class AutoQC(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(coerce_numbers_to_str=True)
 
     version: str
-    thresholds: typing.List[ThresholdNode]
-    data: typing.Dict[str, typing.Any]
+    thresholds: list[ThresholdNode]
+    data: dict[str, typing.Any]
 
     @pydantic.field_validator("version")
     @classmethod
@@ -45,13 +45,38 @@ class AutoQC(pydantic.BaseModel):
         return ver
 
 
+class TestCase(pydantic.BaseModel):
+    """A single case in a test suite: a data document and its expected outcome."""
+
+    name: str
+    data: dict[str, typing.Any]
+    expect: str = "pass"
+    codes: list[str] | None = None
+
+    @pydantic.field_validator("expect")
+    @classmethod
+    def validate_expect(cls, value: str) -> str:
+        """Normalise and validate the expected outcome."""
+        normalised = value.lower()
+        if normalised not in ("pass", "fail"):
+            raise ValueError("expect must be 'pass' or 'fail'")
+        return normalised
+
+
+class TestSuite(pydantic.BaseModel):
+    """A suite of test cases run against a thresholds file."""
+
+    thresholds: str
+    cases: list[TestCase]
+
+
 @dataclasses.dataclass(frozen=True)
 class AutoQCEvaluation:
     """Container for the result of evaluating the QC dictionary."""
 
     is_pass: bool
-    fail_codes: typing.List[str]
-    evaluation: typing.List[typing.Dict[str, typing.Any]]
+    fail_codes: list[str]
+    evaluation: list[dict[str, typing.Any]]
 
     def to_evaluation_string(self, json_output: bool) -> str:
         """Generate a string representation of the auto-qc evaluation tree.

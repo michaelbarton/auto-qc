@@ -27,6 +27,9 @@ the check.
 - `-d`, `--data` <DATA_FILE> — Path to the YAML/JSON file of metrics.
 - `-t`, `--thresholds` <FILE> — Path to the YAML/JSON file of rules.
 - `-j`, `--json-output` — Print a detailed JSON report instead of PASS/FAIL.
+- `-e`, `--explain` — Print a tree explaining how every rule was evaluated.
+- `-T`, `--test` <SUITE_FILE> — Run a suite of test cases against its thresholds
+  file.
 - `-m`, `--manual` — Print this manual and exit.
 
 ## Data file
