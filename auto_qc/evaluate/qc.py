@@ -1,6 +1,7 @@
 import typing
 
 from auto_qc import models, node, variable
+from auto_qc.exception import AutoQCError
 
 
 def evaluate(state: models.AutoQC) -> models.AutoQCEvaluation:
@@ -20,30 +21,10 @@ def evaluate(state: models.AutoQC) -> models.AutoQCEvaluation:
 def create_variable_dict(
     input_node: models.ThresholdNode, analysis: dict[str, typing.Any]
 ) -> dict[str, typing.Any]:
-    return dict(
-        list(
-            map(
-                lambda x: (x[1:], variable.get_variable_value(analysis, x)),
-                variable.get_variable_names(input_node.rule),
-            )
-        )
-    )
-
-
-def does_node_pass(input_node: models.ThresholdNode, analysis: dict[str, typing.Any]) -> bool:
-    """
-    Evaluates the PASS/FAIL status of a QC node.
-
-    Args:
-      input_node: An s-expression list in the form of [operator, arg1, arg2, ...].
-
-      analysis (dict): A dictionary containing to the variables referenced in the
-      given QC node
-
-    Yields:
-      True if the node passes QC, False if it fails QC.
-    """
-    return node.evaluate_rule(node.eval_variables(analysis, input_node.rule))
+    return {
+        name[1:]: variable.resolve(analysis, name)
+        for name in variable.get_variable_names(input_node.rule)
+    }
 
 
 def create_qc_message(
@@ -58,7 +39,18 @@ def create_qc_message(
 def build_qc_node(
     input_node: models.ThresholdNode, analysis: dict[str, typing.Any]
 ) -> dict[str, typing.Any]:
-    is_pass = does_node_pass(input_node, analysis)
+    """Evaluate one threshold, returning its pass/fail state and explanation.
+
+    Raises:
+        AutoQCError: If the rule cannot be evaluated (e.g. it compares a number
+            to text). The rule's name and fail code are added for context.
+    """
+    try:
+        trace = node.evaluate(input_node.rule, analysis)
+    except AutoQCError as err:
+        raise AutoQCError(f"Rule '{input_node.name}' ({input_node.fail_code}): {err}") from err
+
+    is_pass = bool(trace.result)
     variables = create_variable_dict(input_node, analysis)
 
     return {
@@ -68,4 +60,5 @@ def build_qc_node(
         "fail_code": input_node.fail_code,
         "tags": input_node.tags or [],
         "message": create_qc_message(is_pass, input_node, variables),
+        "explain": trace.to_dict(),
     }

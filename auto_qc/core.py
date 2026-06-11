@@ -28,6 +28,7 @@ def build(thresholds: dict[str, typing.Any], data: dict[str, typing.Any]) -> mod
 
     error.check_node_paths(state)
     error.check_operators(state)
+    error.check_arity(state)
     return state
 
 

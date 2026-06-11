@@ -138,9 +138,11 @@ thresholds:
 
 ## Command Line Options
 
-- `-d`, `--data` <DATA_FILE>: Path to the YAML/JSON file of metrics to check.
+- `-d`, `--data` <DATA_FILE>: Path to the YAML/JSON file of metrics to check, or
+  `-` to read the metrics from standard input.
 - `-t`, `--thresholds` <THRESHOLD_FILE>: Path to the YAML/JSON file of pass/fail
-  rules.
+  rules, or `-` to read the rules from standard input. (Only one of `--data` and
+  `--thresholds` can read from stdin at a time.)
 - `-j`, `--json-output`: Print a detailed JSON report instead of `PASS`/`FAIL`.
 - `-e`, `--explain`: Print a tree explaining how every rule was evaluated, with
   each metric pointer resolved to its value and the passing/failing branches
@@ -148,6 +150,7 @@ thresholds:
 - `-T`, `--test` <SUITE_FILE>: Run a suite of test cases against its thresholds
   file (see [Testing your rules](#testing-your-rules)).
 - `-m`, `--manual`: Print the full manual and exit.
+- `-V`, `--version`: Print the version and exit.
 
 `auto-qc` exits `0` when every rule passes and `1` when any rule fails or the
 input files are invalid.
@@ -159,7 +162,10 @@ By default `auto-qc` prints a single line: `PASS`, or `FAIL:` followed by the
 
 With `--json-output` it prints a structured report that downstream tooling can
 consume — the overall result, the list of failing codes, and an entry per rule
-with its name, pass/fail state, message and tags:
+with its name, pass/fail state, message, tags, and an `explain` tree giving the
+machine-readable evaluation of the rule (each operator with its result, and each
+pointer resolved to its value), so a dashboard can show _why_ a rule failed
+without re-running the tool:
 
 ```json
 {
@@ -168,18 +174,19 @@ with its name, pass/fail state, message and tags:
   "pass": false,
   "qc": [
     {
-      "fail_code": "CONTAMINATION",
-      "message": "",
-      "name": "Contamination too high",
-      "pass": true,
-      "tags": []
-    },
-    {
       "fail_code": "LOW_COVERAGE",
       "message": "",
       "name": "Coverage too low",
       "pass": false,
-      "tags": []
+      "tags": [],
+      "explain": {
+        "operator": "greater_than",
+        "result": false,
+        "args": [
+          { "variable": ":coverage/mean_depth", "value": 18.6 },
+          { "literal": 30 }
+        ]
+      }
     }
   ]
 }
@@ -367,6 +374,39 @@ Operator names are case-insensitive, so `or` and `OR` are equivalent.
 - 1.0
 ```
 
+**between** — Test whether a value lies within an inclusive range
+(`low <= value <= high`), which reads better than combining two comparisons.
+
+```yaml
+- between
+- ":coverage/mean_depth"
+- 30
+- 60
+```
+
+**add** / **subtract** / **multiply** / **divide** — Arithmetic on numeric
+values, so a rule can test a derived quantity such as a ratio without
+pre-computing it upstream. `add` and `multiply` take two or more arguments;
+`subtract` and `divide` take exactly two.
+
+```yaml
+- greater_than
+- ["divide", ":reads/mapped", ":reads/total"]
+- 0.95
+```
+
+**matches** / **starts_with** / **ends_with** — Test a string value against a
+regular expression, prefix, or suffix.
+
+```yaml
+- matches
+- ":sample/id"
+- "^SRX-[0-9]+$"
+```
+
+**contains** — Test whether a string or list value contains another value.
+**length** — The length of a string or list, for use inside another comparison.
+
 **and** — Test whether all arguments are true. The arguments here are themselves
 rules, showing that rules nest.
 
@@ -399,16 +439,14 @@ rules, showing that rules nest.
 - ":sample/is_control"
 ```
 
-**is_in** / **is_not_in** — Test whether a value is in a list of values. The
-list must begin with the **list** operator.
+**is_in** / **is_not_in** — Test whether a value is in a list of values. Write
+the list inline; only a list whose first element is itself an operator needs the
+explicit **list** keyword to mark it as data rather than a rule.
 
 ```yaml
 - is_in
 - ":sample/protocol"
-- - list
-  - Low Input DNA
-  - Standard DNA
-  - PCR-free
+- [Low Input DNA, Standard DNA, PCR-free]
 ```
 
 ## Building and Testing

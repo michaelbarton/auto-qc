@@ -1,4 +1,5 @@
 import sys
+import typing
 from importlib import resources
 
 import click
@@ -12,10 +13,27 @@ from auto_qc import explain as explain_view
 from auto_qc.evaluate import qc
 
 
+def _load_document(path: str) -> typing.Any:
+    """Parse a YAML/JSON document from a path, or from stdin when ``path`` is ``-``."""
+    if path == "-":
+        return yaml.safe_load(sys.stdin.read())
+    with open(path) as handle:
+        return yaml.safe_load(handle)
+
+
 @click.command()
-@click.option("--data", "-d", help="Path to data YAML/JSON.", type=click.Path(exists=True))
+@click.version_option(auto_qc.__version__, "-V", "--version", prog_name="auto-qc")
 @click.option(
-    "--thresholds", "-t", help="Path to thresholds YAML/JSON.", type=click.Path(exists=True)
+    "--data",
+    "-d",
+    help="Path to data YAML/JSON, or '-' to read from stdin.",
+    type=click.Path(exists=True, allow_dash=True),
+)
+@click.option(
+    "--thresholds",
+    "-t",
+    help="Path to thresholds YAML/JSON, or '-' to read from stdin.",
+    type=click.Path(exists=True, allow_dash=True),
 )
 @click.option(
     "--json-output",
@@ -70,18 +88,20 @@ def cli(
         stderr.print(f"[red]Error[/red]: missing required flags: {', '.join(missing_flags)}")
         exit(1)
 
+    if data == "-" and thresholds == "-":
+        stderr.print("[red]Error[/red]: only one of --data / --thresholds can read from stdin.")
+        exit(1)
+
     try:
-        with open(thresholds) as threshold, open(data) as analysis:
-            state = core.build(yaml.safe_load(threshold), yaml.safe_load(analysis))
+        state = core.build(_load_document(thresholds), _load_document(data))
+        evaluation = qc.evaluate(state)
+        if explain:
+            explain_view.render(state, stdout)
     except auto_qc.exception.AutoQCError as err:
         stderr.print(f"[red]Errors[/red]:\n{err}")
         sys.exit(1)
 
-    evaluation = qc.evaluate(state)
-
-    if explain:
-        explain_view.render(state, stdout)
-    else:
+    if not explain:
         print(evaluation.to_evaluation_string(json_output))
 
     sys.exit(0 if evaluation.is_pass else 1)

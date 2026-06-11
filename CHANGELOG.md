@@ -34,7 +34,24 @@ backwards compatible** with 2.x threshold or data files.
 - A non-zero exit code is returned when any QC rule fails, so auto-qc can be
   used directly in pipelines and CI.
 - Support for list-valued data references (used by the `is_in` / `is_not_in`
-  operators).
+  operators). The membership list can now be written inline, without the
+  explicit `list` keyword.
+- New operators that make rules more expressive without leaving the s-expression
+  syntax: `between` (inclusive range); `add`, `subtract`, `multiply` and
+  `divide` (arithmetic over derived values such as ratios); `matches`,
+  `starts_with`, `ends_with` and `contains` (string and collection predicates);
+  and `length`.
+- Friendly, single `AutoQCError` for rules that can't be evaluated. Type
+  mismatches (e.g. comparing a number to text or to a missing metric) and
+  operators given the wrong number of arguments now report a clear message
+  naming the rule, instead of raising an uncaught Python traceback. Argument
+  counts are validated up front.
+- `--data` and `--thresholds` accept `-` to read a document from standard input,
+  so auto-qc fits a shell pipeline without a temp file.
+- A `--version` / `-V` flag.
+- The `--json-output` report now includes a machine-readable `explain` tree for
+  each rule (every operator with its result, every pointer resolved to its
+  value), so downstream tooling can show why a rule failed.
 - An `examples/` directory with runnable examples.
 - An `--explain` / `-e` flag that prints a tree showing how every rule was
   evaluated, with each metric pointer resolved to its value and the passing and

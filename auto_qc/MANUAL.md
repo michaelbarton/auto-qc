@@ -24,13 +24,17 @@ the check.
 
 ## Options
 
-- `-d`, `--data` <DATA_FILE> — Path to the YAML/JSON file of metrics.
-- `-t`, `--thresholds` <FILE> — Path to the YAML/JSON file of rules.
+- `-d`, `--data` <DATA_FILE> — Path to the YAML/JSON file of metrics, or `-` for
+  standard input.
+- `-t`, `--thresholds` <FILE> — Path to the YAML/JSON file of rules, or `-` for
+  standard input. Only one of `--data` / `--thresholds` may use stdin at once.
 - `-j`, `--json-output` — Print a detailed JSON report instead of PASS/FAIL.
+  Each rule includes an `explain` tree describing how it was evaluated.
 - `-e`, `--explain` — Print a tree explaining how every rule was evaluated.
 - `-T`, `--test` <SUITE_FILE> — Run a suite of test cases against its thresholds
   file.
 - `-m`, `--manual` — Print this manual and exit.
+- `-V`, `--version` — Print the version and exit.
 
 ## Data file
 
@@ -80,9 +84,20 @@ A sample passes only when every rule evaluates to `True`.
 - **equals**, **not_equals** — compare two values for equality.
 - **greater_than**, **less_than**, **greater_equal_than**, **less_equal_than** —
   compare two numbers.
+- **between** — test that a value is within an inclusive range (`low`, `high`).
+- **add**, **subtract**, **multiply**, **divide** — arithmetic on numbers, for
+  rules over derived values such as ratios.
 - **and**, **or** — combine nested rules.
 - **not** — flip a Boolean value.
-- **is_in**, **is_not_in** — test membership in a `list`.
+- **is_in**, **is_not_in** — test membership in a list (written inline).
+- **contains** — test that a string or list contains a value.
+- **matches**, **starts_with**, **ends_with** — test a string against a regular
+  expression, prefix, or suffix.
+- **length** — the length of a string or list.
+
+A rule that uses an operator on incompatible types — comparing a number to text,
+or to a missing metric — reports a clear error naming the rule, rather than
+crashing.
 
 ```yaml
 - or

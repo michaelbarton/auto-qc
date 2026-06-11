@@ -19,6 +19,11 @@ def test_build_passing_qc_node_with_two_literals():
         "tags": [],
         "fail_code": "ERR01",
         "message": "passes",
+        "explain": {
+            "operator": "greater_than",
+            "result": True,
+            "args": [{"literal": 2}, {"literal": 1}],
+        },
     }
     assert qc.build_qc_node(threshold_node, {}) == expected
 
@@ -40,6 +45,11 @@ def test_build_failing_qc_node_with_literal_and_variable():
         "tags": [],
         "fail_code": "ERR01",
         "message": "fails",
+        "explain": {
+            "operator": "less_than",
+            "result": False,
+            "args": [{"variable": ":ref/metric_1", "value": 2}, {"literal": 1}],
+        },
     }
     assert qc.build_qc_node(threshold_node, a) == expected
 

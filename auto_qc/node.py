@@ -1,93 +1,174 @@
+"""The s-expression engine: one evaluator for ``run``, ``--explain`` and tests.
+
+A rule is a nested list (an s-expression). A list whose first element is a known
+operator is an *application*; any other list is a *literal list* (e.g. the set
+of allowed values for ``is_in``). Strings beginning with ``:`` are pointers into
+the data document.
+
+:func:`evaluate` is the single source of truth: it resolves pointers, applies
+operators, and returns a :class:`Trace` carrying both the result and a tree that
+explains how it was reached. ``--explain`` renders that tree; the JSON output
+serialises it; the pass/fail logic reads ``trace.result``. There is no second
+evaluator to drift out of sync.
+"""
+
+import dataclasses
 import functools
 import operator
+import re
 import typing
 
 from auto_qc import variable
-from auto_qc.util import functional
+from auto_qc.evaluate import exception
 
-OPERATORS: dict[str, typing.Callable[..., typing.Any]] = {
-    "greater_than": operator.gt,
-    "greater_equal_than": operator.ge,
-    "less_than": operator.lt,
-    "less_equal_than": operator.le,
-    "equals": operator.eq,
-    "not_equals": operator.ne,
-    "and": lambda *args: all(args),
-    "or": lambda *args: any(args),
-    "not": lambda x: not x,
-    "is_in": lambda x, y: x in y,
-    "is_not_in": lambda x, y: x not in y,
-    "list": lambda *args: list(args),
+
+@dataclasses.dataclass(frozen=True)
+class Operator:
+    """An operator's implementation plus the metadata used to validate it."""
+
+    func: typing.Callable[..., typing.Any]
+    min_args: int
+    max_args: int | None  # ``None`` means unbounded (variadic).
+    kind: str  # Used to phrase type errors, e.g. "compare" / "do arithmetic on".
+
+
+def _product(values: typing.Iterable[float]) -> float:
+    return functools.reduce(operator.mul, values, 1)
+
+
+OPERATORS: dict[str, Operator] = {
+    # Comparisons.
+    "greater_than": Operator(operator.gt, 2, 2, "compare"),
+    "greater_equal_than": Operator(operator.ge, 2, 2, "compare"),
+    "less_than": Operator(operator.lt, 2, 2, "compare"),
+    "less_equal_than": Operator(operator.le, 2, 2, "compare"),
+    "equals": Operator(operator.eq, 2, 2, "compare"),
+    "not_equals": Operator(operator.ne, 2, 2, "compare"),
+    "between": Operator(lambda v, lo, hi: lo <= v <= hi, 3, 3, "compare"),
+    # Boolean combinators. Their arguments are themselves rules.
+    "and": Operator(lambda *args: all(args), 1, None, "combine"),
+    "or": Operator(lambda *args: any(args), 1, None, "combine"),
+    "not": Operator(lambda x: not x, 1, 1, "combine"),
+    # Membership.
+    "is_in": Operator(lambda x, y: x in y, 2, 2, "test membership of"),
+    "is_not_in": Operator(lambda x, y: x not in y, 2, 2, "test membership of"),
+    "contains": Operator(lambda x, y: y in x, 2, 2, "test membership of"),
+    "list": Operator(lambda *args: list(args), 0, None, "build a list from"),
+    # Arithmetic, for rules over derived values like ratios.
+    "add": Operator(lambda *args: sum(args), 2, None, "do arithmetic on"),
+    "subtract": Operator(lambda a, b: a - b, 2, 2, "do arithmetic on"),
+    "multiply": Operator(lambda *args: _product(args), 2, None, "do arithmetic on"),
+    "divide": Operator(lambda a, b: a / b, 2, 2, "do arithmetic on"),
+    # String / collection predicates.
+    "matches": Operator(lambda s, pattern: re.search(pattern, s) is not None, 2, 2, "match"),
+    "starts_with": Operator(lambda s, prefix: s.startswith(prefix), 2, 2, "match"),
+    "ends_with": Operator(lambda s, suffix: s.endswith(suffix), 2, 2, "match"),
+    "length": Operator(lambda x: len(x), 1, 1, "measure the length of"),
 }
 
-
-def is_operator(v: typing.Any) -> bool:
-    return isinstance(v, str) and v.lower() in OPERATORS
-
-
-def has_doc_dict(qc_node: list[typing.Any]) -> bool:
-    return isinstance(qc_node[0], dict)
+# Operators whose arguments are themselves boolean rules rather than values.
+RULE_POSITION_OPERATORS = {"and", "or", "not"}
 
 
-def get_all_operators(qc_node: list[typing.Any]) -> list[typing.Any]:
-    """
-    Returns all operators listed in a QC node
-    """
-
-    def _walk_node(n: list[typing.Any]) -> list[typing.Any]:
-        operator_, rest = n[0], n[1:]
-        return [operator_, *f(rest)]
-
-    f = functools.partial(map, functional.recursive_apply(_walk_node, functional.empty_list))
-
-    return functional.flatten(_walk_node(qc_node))
+def is_operator(value: typing.Any) -> bool:
+    return isinstance(value, str) and value.lower() in OPERATORS
 
 
-def eval_variables(analyses: dict[str, typing.Any], rule: list[typing.Any]) -> list[typing.Any]:
-    """
-    Replace all variables in a node s-expression with their referenced literal
-    value.
+def is_application(expr: typing.Any) -> bool:
+    """Is ``expr`` a rule application (a list led by a known operator)?"""
+    return isinstance(expr, list) and len(expr) > 0 and is_operator(expr[0])
 
-    Args:
-      analyses: A dictionary corresponding to the values referenced in the
-      given s-expression.
-      rule: An s-expression list in the form of [operator, arg1, arg2, ...].
 
-    Yields:
-      A node expression with referenced values replaced with their literal values.
+def _describe(value: typing.Any) -> str:
+    """A short, human word for a value's type, for error messages."""
+    if value is None:
+        return "missing (null)"
+    if isinstance(value, bool):
+        return "true/false"
+    if isinstance(value, (int, float)):
+        return f"the number {value!r}"
+    if isinstance(value, str):
+        return f"the text {value!r}"
+    if isinstance(value, list):
+        return f"the list {value!r}"
+    return repr(value)
 
-    Examples:
-      >>> eval_variables({a: 1}, [>, :a, 2])
-      [>, 1, 2]
-    """
 
-    def _eval(n: typing.Any) -> typing.Any:
-        if variable.is_variable(n):
-            return variable.get_variable_value(analyses, n)
-        else:
-            return n
+def arity_message(op_name: str, op: Operator, given: int) -> str:
+    """Phrase a wrong-number-of-arguments error."""
+    if op.max_args == op.min_args:
+        expected = f"exactly {op.min_args} argument{'s' if op.min_args != 1 else ''}"
+    elif op.max_args is None:
+        expected = f"at least {op.min_args} argument{'s' if op.min_args != 1 else ''}"
+    else:
+        expected = f"between {op.min_args} and {op.max_args} arguments"
+    return f"Operator '{op_name.lower()}' takes {expected} but got {given}."
 
-    return list(
-        map(functional.recursive_apply(functools.partial(eval_variables, analyses), _eval), rule)
+
+def _type_message(op_name: str, op: Operator, args: list[typing.Any]) -> str:
+    described = " and ".join(_describe(a) for a in args)
+    return (
+        f"Operator '{op_name.lower()}' could not {op.kind} {described}. "
+        f"Check that the rule and the data have compatible types."
     )
 
 
-def evaluate_rule(node: list[typing.Any]) -> typing.Any:
+def _apply(op_name: str, op: Operator, args: list[typing.Any]) -> typing.Any:
+    given = len(args)
+    if given < op.min_args or (op.max_args is not None and given > op.max_args):
+        raise exception.EvaluationError(arity_message(op_name, op, given))
+    try:
+        return op.func(*args)
+    except ZeroDivisionError:
+        raise exception.EvaluationError(f"Operator '{op_name.lower()}' divided by zero.") from None
+    except (TypeError, AttributeError):
+        raise exception.EvaluationError(_type_message(op_name, op, args)) from None
+
+
+@dataclasses.dataclass
+class Trace:
+    """The result of evaluating an expression, plus an explanation tree."""
+
+    result: typing.Any
+    kind: str  # "operator" | "variable" | "literal" | "list"
+    operator: str | None = None
+    variable: str | None = None
+    children: list["Trace"] = dataclasses.field(default_factory=list)
+
+    def to_dict(self) -> dict[str, typing.Any]:
+        """A JSON-serialisable view of this trace, for ``--json-output``."""
+        if self.kind == "variable":
+            return {"variable": self.variable, "value": self.result}
+        if self.kind == "literal":
+            return {"literal": self.result}
+        if self.kind == "list":
+            return {"list": [child.to_dict() for child in self.children]}
+        return {
+            "operator": (self.operator or "").lower(),
+            "result": self.result,
+            "args": [child.to_dict() for child in self.children],
+        }
+
+
+def evaluate(expr: typing.Any, data: dict[str, typing.Any]) -> Trace:
+    """Evaluate an s-expression against ``data``, returning a :class:`Trace`.
+
+    Raises:
+        EvaluationError: If an operator is applied to incompatible types or the
+            wrong number of arguments.
     """
-    Evaluate an s-expression by applying the operator to the rest of the arguments.
+    if variable.is_variable(expr):
+        return Trace(result=variable.resolve(data, expr), kind="variable", variable=expr)
 
-    Args:
-      node (list): An s-expression list in the form of [operator, arg1, arg2, ...]
+    if is_application(expr):
+        op_name = expr[0]
+        op = OPERATORS[op_name.lower()]
+        children = [evaluate(arg, data) for arg in expr[1:]]
+        result = _apply(op_name, op, [child.result for child in children])
+        return Trace(result=result, kind="operator", operator=op_name, children=children)
 
-    Yields:
-      The result of "applying" the operator to the arugments. Will evaluate
-      recursively if any of the args are a list.
+    if isinstance(expr, list):
+        children = [evaluate(element, data) for element in expr]
+        return Trace(result=[child.result for child in children], kind="list", children=children)
 
-    Examples:
-      >>> evaluate_rule([>, 0, 1])
-      FALSE
-    """
-    args = list(map(functional.recursive_apply(evaluate_rule), node[1:]))
-    op = node[0]
-    qc_func = OPERATORS[op.lower() if isinstance(op, str) else op]
-    return qc_func(*args)
+    return Trace(result=expr, kind="literal")

@@ -26,6 +26,16 @@ def is_variable_path_valid(data: dict[str, typing.Any], path: str) -> bool:
     return True
 
 
+def resolve(data: dict[str, typing.Any], path: str) -> typing.Any:
+    """Return the raw value at ``path``, or ``None`` if any key is missing.
+
+    Unlike :func:`get_variable_value`, lists are returned as-is rather than
+    wrapped in a ``list`` s-expression, so the engine can use a referenced list
+    directly (e.g. as the right-hand side of ``is_in``).
+    """
+    return functional.get_in(data, path[1:].split("/"))
+
+
 def get_variable_value(data: dict[str, typing.Any], path: str) -> typing.Any:
     """Get variable's value by traversing its path into the data file.
 
