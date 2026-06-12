@@ -42,7 +42,8 @@ Scenario Outline: Generating JSON formatted output
                     "args": [
                         {"variable": ":value", "value": 2},
                         {"literal": <literal>}
-                    ]
+                    ],
+                    "margin": <margin>
                 },
                 "fail_code": "ERR00001",
                 "message": "<msg>",
@@ -56,9 +57,9 @@ Scenario Outline: Generating JSON formatted output
     """
 
 Examples: Outputs
-  | literal | pass   | msg    | code         | exit |
-  | 0       | true   | passes | []           | 0    |
-  | 2       | false  | fails  | ["ERR00001"] | 1    |
+  | literal | pass   | msg    | code         | exit | margin |
+  | 0       | true   | passes | []           | 0    | 2.0    |
+  | 2       | false  | fails  | ["ERR00001"] | 1    | 0.0    |
 
 Scenario: Explaining how a rule was evaluated
   Given I create the file "analysis.yml" with the contents:
@@ -94,4 +95,32 @@ Scenario: Explaining how a rule was evaluated
   And the standard out should contain:
     """
     18.6
+    """
+
+Scenario: Reporting how close a rule is to flipping
+  Given I create the file "analysis.yml" with the contents:
+   """
+   coverage:
+     mean_depth: 30.1
+   """
+  And I create the file "threshold.yml" with the contents:
+   """
+   version: 3.0.0
+   thresholds:
+   - name: Coverage too low
+     fail_code: LOW_COVERAGE
+     rule:
+       - greater_than
+       - :coverage/mean_depth
+       - 30
+   """
+  When I run the command "auto-qc" with the arguments:
+     | key              | value         |
+     | --data           | analysis.yml  |
+     | --thresholds     | threshold.yml |
+     | --margin         |               |
+  Then the exit code should be 0
+  And the standard out should contain:
+    """
+    slack 0.1
     """

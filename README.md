@@ -147,6 +147,9 @@ thresholds:
 - `-e`, `--explain`: Print a tree explaining how every rule was evaluated, with
   each metric pointer resolved to its value and the passing/failing branches
   marked.
+- `-M`, `--margin`: For every numeric comparison, print how far the metric could
+  move before the comparison flips — the _slack_ on a passing check, or how much
+  it falls short on a failing one (see [Margins](#margins)).
 - `-T`, `--test` <SUITE_FILE>: Run a suite of test cases against its thresholds
   file (see [Testing your rules](#testing-your-rules)).
 - `-m`, `--manual`: Print the full manual and exit.
@@ -185,12 +188,61 @@ without re-running the tool:
         "args": [
           { "variable": ":coverage/mean_depth", "value": 18.6 },
           { "literal": 30 }
-        ]
+        ],
+        "margin": -11.4
       }
     }
   ]
 }
 ```
+
+Each ordered numeric comparison also carries a `margin`: the signed distance to
+the boundary, negative here because the depth of `18.6` falls `11.4` short of
+the cutoff of `30`. See [Margins](#margins) for what this is good for.
+
+## Margins
+
+`PASS`/`FAIL` tells you _whether_ a sample cleared the rules; `--margin` tells
+you _how robustly_. For every ordered numeric comparison it reports the
+**slack** — the distance the metric could move before that comparison flips:
+
+```console
+$ auto-qc --data sample.yml --thresholds thresholds.yml --margin
+PASS Contamination too high (CONTAMINATION)
+    ✓ :contamination/percent_human=0.4 less_than 1 → slack 0.6 ← tightest
+
+FAIL Coverage below protocol threshold (LOW_COVERAGE)
+    ✗ :coverage/mean_depth=12.4 greater_than 15 → short by 2.6 ← tightest
+    ✗ :coverage/mean_depth=12.4 greater_than 30 → short by 17.6
+```
+
+A sample that clears a coverage cutoff by `0.1` is passing fragilely; one that
+clears it by `30` is passing comfortably — a difference the bare `PASS` hides
+but that matters when you are deciding whether to trust a whole batch. Within
+each rule the comparison closest to flipping is marked `← tightest`. Only the
+ordered comparisons (`greater_than`, `greater_equal_than`, `less_than`,
+`less_equal_than`, `between`) have a continuous margin; equality, string and
+membership tests are discrete and are skipped. Like `--explain`, `--margin`
+still exits `0` on pass and `1` on fail, so it slots into the same pipeline.
+
+The same `margin` value is attached to every ordered comparison in the
+`--json-output` `explain` tree, which is what makes it useful at scale. Running
+a cohort of samples and collecting the margins turns a pile of pass/fail
+verdicts into a sensitivity dataset. Aggregate **per rule** (the slack is in
+each metric's own units, so pooling across different rules is meaningless), and
+the interesting signal is the tail near zero, not the mean:
+
+- **How bunched is the cohort against a cutoff?** Many samples with a slack near
+  zero means a small protocol change or instrument drift would flip a lot of
+  verdicts at once — a fragile gate the headline pass-rate hides.
+- **What would moving a threshold do?** Because the slack _is_ the distance to
+  the boundary, counting the samples whose slack falls between, say, `-2` and
+  `0` tells you exactly how many currently-failing samples a two-unit relaxation
+  would reclaim — a what-if curve for free, without re-running anything.
+
+For a rule that is a single comparison the slack is exactly the verdict's
+distance to flipping; for a compound `and`/`or` rule it is reported per
+comparison, so aggregate those at the comparison level.
 
 ## Python API
 

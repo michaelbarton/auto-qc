@@ -23,6 +23,7 @@ def test_build_passing_qc_node_with_two_literals():
             "operator": "greater_than",
             "result": True,
             "args": [{"literal": 2}, {"literal": 1}],
+            "margin": 1.0,
         },
     }
     assert qc.build_qc_node(threshold_node, {}) == expected
@@ -49,6 +50,7 @@ def test_build_failing_qc_node_with_literal_and_variable():
             "operator": "less_than",
             "result": False,
             "args": [{"variable": ":ref/metric_1", "value": 2}, {"literal": 1}],
+            "margin": -1.0,
         },
     }
     assert qc.build_qc_node(threshold_node, a) == expected
