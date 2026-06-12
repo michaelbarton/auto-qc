@@ -39,6 +39,11 @@ the check.
   failing one falls short. Only the ordered comparisons (`greater_than`,
   `less_than`, `between`, ...) have a margin; equality and string tests are
   skipped.
+- `-l`, `--lint` — Statically check the thresholds for rules that can never
+  behave as a gate — a conjunction with no satisfying value (`> 30` and `< 10`),
+  a reversed `between`, or a rule with no metric pointers whose outcome is
+  fixed. Needs only `--thresholds`; no data is read. Exits `1` if any
+  error-level contradiction is found.
 - `-T`, `--test` <SUITE_FILE> — Run a suite of test cases against its thresholds
   file.
 - `-m`, `--manual` — Print this manual and exit.

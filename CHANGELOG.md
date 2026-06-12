@@ -17,6 +17,13 @@ project adheres to [Semantic Versioning](http://semver.org/).
   `--json-output` `explain` tree (a `margin` key alongside `operator`, `result`
   and `args`), so the margins of a whole cohort of samples can be aggregated —
   per rule — into a threshold-sensitivity dataset.
+- A `--lint` / `-l` flag that statically checks the thresholds file on its own,
+  with no data, for rules that can never behave as a gate: an `and` of numeric
+  bounds on one metric with no satisfying value (`> 30` and `< 10`), a reversed
+  `between` or conflicting `equals` that nothing can match, and constant rules
+  with no metric pointers whose outcome is fixed. The analysis is sound — it
+  only reports a contradiction it can prove — and exits `1` on any error-level
+  finding, so it drops into CI as a pre-flight check on the rules.
 
 ## 3.0.0 - 2026-06-01
 

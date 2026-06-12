@@ -10,6 +10,7 @@ import auto_qc
 import auto_qc.exception
 from auto_qc import core, runner
 from auto_qc import explain as explain_view
+from auto_qc import lint as lint_view
 from auto_qc import margin as margin_view
 from auto_qc.evaluate import qc
 
@@ -58,6 +59,13 @@ def _load_document(path: str) -> typing.Any:
     default=False,
 )
 @click.option(
+    "--lint",
+    "-l",
+    help="Statically check the thresholds for contradictory rules (no data needed).",
+    is_flag=True,
+    default=False,
+)
+@click.option(
     "--test",
     "-T",
     "test_suite",
@@ -71,6 +79,7 @@ def cli(
     json_output: bool,
     explain: bool,
     margin: bool,
+    lint: bool,
     test_suite: str,
     manual: bool,
 ) -> None:
@@ -81,7 +90,7 @@ def cli(
     if manual:
         with resources.path(auto_qc.__name__, "MANUAL.md") as manual_path:
             stdout.print(markdown.Markdown(manual_path.read_text()))
-        exit(0)
+        sys.exit(0)
 
     if test_suite:
         try:
@@ -90,6 +99,19 @@ def cli(
             stderr.print(f"[red]Errors[/red]:\n{err}")
             sys.exit(1)
         sys.exit(0 if passed else 1)
+
+    if lint:
+        if not thresholds:
+            stderr.print("[red]Error[/red]: --lint requires --thresholds.")
+            sys.exit(1)
+        try:
+            state = core.build_thresholds(_load_document(thresholds))
+            findings = lint_view.analyse(state)
+        except auto_qc.exception.AutoQCError as err:
+            stderr.print(f"[red]Errors[/red]:\n{err}")
+            sys.exit(1)
+        lint_view.render(findings, stdout)
+        sys.exit(1 if any(f.severity == "error" for f in findings) else 0)
 
     missing_flags = []
     if not data:
@@ -100,11 +122,11 @@ def cli(
 
     if missing_flags:
         stderr.print(f"[red]Error[/red]: missing required flags: {', '.join(missing_flags)}")
-        exit(1)
+        sys.exit(1)
 
     if data == "-" and thresholds == "-":
         stderr.print("[red]Error[/red]: only one of --data / --thresholds can read from stdin.")
-        exit(1)
+        sys.exit(1)
 
     try:
         state = core.build(_load_document(thresholds), _load_document(data))
