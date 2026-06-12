@@ -30,6 +30,10 @@ class Operator:
     min_args: int
     max_args: int | None  # ``None`` means unbounded (variadic).
     kind: str  # Used to phrase type errors, e.g. "compare" / "do arithmetic on".
+    # Signed distance from the boundary for an ordered comparison: positive
+    # exactly when the comparison holds, its magnitude the amount the value must
+    # move to flip it. ``None`` for operators with no continuous margin.
+    margin: typing.Callable[..., float] | None = None
 
 
 def _product(values: typing.Iterable[float]) -> float:
@@ -38,13 +42,25 @@ def _product(values: typing.Iterable[float]) -> float:
 
 OPERATORS: dict[str, Operator] = {
     # Comparisons.
-    "greater_than": Operator(operator.gt, 2, 2, "compare"),
-    "greater_equal_than": Operator(operator.ge, 2, 2, "compare"),
-    "less_than": Operator(operator.lt, 2, 2, "compare"),
-    "less_equal_than": Operator(operator.le, 2, 2, "compare"),
+    "greater_than": Operator(
+        operator.gt, 2, 2, "compare", margin=lambda value, bound: value - bound
+    ),
+    "greater_equal_than": Operator(
+        operator.ge, 2, 2, "compare", margin=lambda value, bound: value - bound
+    ),
+    "less_than": Operator(operator.lt, 2, 2, "compare", margin=lambda value, bound: bound - value),
+    "less_equal_than": Operator(
+        operator.le, 2, 2, "compare", margin=lambda value, bound: bound - value
+    ),
     "equals": Operator(operator.eq, 2, 2, "compare"),
     "not_equals": Operator(operator.ne, 2, 2, "compare"),
-    "between": Operator(lambda v, lo, hi: lo <= v <= hi, 3, 3, "compare"),
+    "between": Operator(
+        lambda v, lo, hi: lo <= v <= hi,
+        3,
+        3,
+        "compare",
+        margin=lambda value, low, high: min(value - low, high - value),
+    ),
     # Boolean combinators. Their arguments are themselves rules.
     "and": Operator(lambda *args: all(args), 1, None, "combine"),
     "or": Operator(lambda *args: any(args), 1, None, "combine"),
@@ -133,6 +149,7 @@ class Trace:
     kind: str  # "operator" | "variable" | "literal" | "list"
     operator: str | None = None
     variable: str | None = None
+    margin: float | None = None
     children: list["Trace"] = dataclasses.field(default_factory=list)
 
     def to_dict(self) -> dict[str, typing.Any]:
@@ -143,11 +160,31 @@ class Trace:
             return {"literal": self.result}
         if self.kind == "list":
             return {"list": [child.to_dict() for child in self.children]}
-        return {
+        node_dict: dict[str, typing.Any] = {
             "operator": (self.operator or "").lower(),
             "result": self.result,
             "args": [child.to_dict() for child in self.children],
         }
+        if self.margin is not None:
+            node_dict["margin"] = self.margin
+        return node_dict
+
+
+def _is_number(value: typing.Any) -> bool:
+    """Is ``value`` a real number we can measure a margin against (not a bool)?"""
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _margin(op: Operator, values: list[typing.Any]) -> float | None:
+    """The signed slack of an ordered comparison, or ``None`` if it has none.
+
+    Only the ordered comparisons carry a ``margin`` function, and only numeric
+    operands have a continuous distance to the boundary, so string comparisons
+    (``"b" > "a"``) report no margin.
+    """
+    if op.margin is None or not all(_is_number(value) for value in values):
+        return None
+    return float(op.margin(*values))
 
 
 def evaluate(expr: typing.Any, data: dict[str, typing.Any]) -> Trace:
@@ -164,8 +201,15 @@ def evaluate(expr: typing.Any, data: dict[str, typing.Any]) -> Trace:
         op_name = expr[0]
         op = OPERATORS[op_name.lower()]
         children = [evaluate(arg, data) for arg in expr[1:]]
-        result = _apply(op_name, op, [child.result for child in children])
-        return Trace(result=result, kind="operator", operator=op_name, children=children)
+        values = [child.result for child in children]
+        result = _apply(op_name, op, values)
+        return Trace(
+            result=result,
+            kind="operator",
+            operator=op_name,
+            margin=_margin(op, values),
+            children=children,
+        )
 
     if isinstance(expr, list):
         children = [evaluate(element, data) for element in expr]

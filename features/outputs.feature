@@ -42,7 +42,8 @@ Scenario Outline: Generating JSON formatted output
                     "args": [
                         {"variable": ":value", "value": 2},
                         {"literal": <literal>}
-                    ]
+                    ],
+                    "margin": <margin>
                 },
                 "fail_code": "ERR00001",
                 "message": "<msg>",
@@ -56,9 +57,9 @@ Scenario Outline: Generating JSON formatted output
     """
 
 Examples: Outputs
-  | literal | pass   | msg    | code         | exit |
-  | 0       | true   | passes | []           | 0    |
-  | 2       | false  | fails  | ["ERR00001"] | 1    |
+  | literal | pass   | msg    | code         | exit | margin |
+  | 0       | true   | passes | []           | 0    | 2.0    |
+  | 2       | false  | fails  | ["ERR00001"] | 1    | 0.0    |
 
 Scenario: Explaining how a rule was evaluated
   Given I create the file "analysis.yml" with the contents:

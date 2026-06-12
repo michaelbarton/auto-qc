@@ -105,7 +105,9 @@ def test_wrong_arity_raises_evaluation_error():
 
 def test_trace_to_dict_describes_the_evaluation():
     trace = node.evaluate(["greater_than", ":depth", 30], {"depth": 18.6})
-    assert trace.to_dict() == {
+    result = trace.to_dict()
+    assert result.pop("margin") == pytest.approx(-11.4)
+    assert result == {
         "operator": "greater_than",
         "result": False,
         "args": [
@@ -113,3 +115,18 @@ def test_trace_to_dict_describes_the_evaluation():
             {"literal": 30},
         ],
     }
+
+
+def test_trace_to_dict_includes_margin_only_for_ordered_comparisons():
+    trace = node.evaluate(["and", ["greater_than", 2, 1]], {})
+    result = trace.to_dict()
+    # The boolean combinator has no continuous margin ...
+    assert "margin" not in result
+    # ... but the comparison it wraps reports how far it cleared the boundary.
+    assert result["args"][0]["margin"] == 1
+
+
+def test_string_comparison_has_no_margin():
+    trace = node.evaluate(["greater_than", ":id", "SRX-1"], {"id": "SRX-2"})
+    assert trace.result is True
+    assert trace.margin is None

@@ -29,7 +29,10 @@ the check.
 - `-t`, `--thresholds` <FILE> — Path to the YAML/JSON file of rules, or `-` for
   standard input. Only one of `--data` / `--thresholds` may use stdin at once.
 - `-j`, `--json-output` — Print a detailed JSON report instead of PASS/FAIL.
-  Each rule includes an `explain` tree describing how it was evaluated.
+  Each rule includes an `explain` tree describing how it was evaluated, and
+  every ordered numeric comparison in it carries a `margin` (its signed distance
+  to the boundary), so a cohort of reports can be aggregated into a sensitivity
+  dataset.
 - `-e`, `--explain` — Print a tree explaining how every rule was evaluated.
 - `-M`, `--margin` — For every numeric comparison, print how far the metric
   could move before it flips: the slack on a passing check, or how much a

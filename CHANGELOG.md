@@ -13,6 +13,10 @@ project adheres to [Semantic Versioning](http://semver.org/).
   comparison in each rule. This surfaces _how robustly_ a sample passed, which a
   bare `PASS`/`FAIL` hides. Equality, string and membership tests are discrete
   and have no margin, so they are skipped.
+- The same margin is included on every ordered comparison node in the
+  `--json-output` `explain` tree (a `margin` key alongside `operator`, `result`
+  and `args`), so the margins of a whole cohort of samples can be aggregated —
+  per rule — into a threshold-sensitivity dataset.
 
 ## 3.0.0 - 2026-06-01
 

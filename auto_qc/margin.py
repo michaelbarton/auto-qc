@@ -23,17 +23,6 @@ from rich.markup import escape
 
 from auto_qc import models, node
 
-# Signed slack for each ordered comparison. The value is positive exactly when
-# the comparison holds, and its magnitude is the distance the compared value
-# must move to reach the boundary.
-_MARGIN: dict[str, typing.Callable[..., float]] = {
-    "greater_than": lambda value, bound: value - bound,
-    "greater_equal_than": lambda value, bound: value - bound,
-    "less_than": lambda value, bound: bound - value,
-    "less_equal_than": lambda value, bound: bound - value,
-    "between": lambda value, low, high: min(value - low, high - value),
-}
-
 
 @dataclasses.dataclass(frozen=True)
 class Comparison:
@@ -42,11 +31,6 @@ class Comparison:
     slack: float
     holds: bool
     description: str
-
-
-def _is_number(value: typing.Any) -> bool:
-    """Is ``value`` a real number we can measure a margin against (not a bool)?"""
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
 def _format_value(value: typing.Any) -> str:
@@ -83,12 +67,10 @@ def collect(trace: node.Trace) -> list[Comparison]:
     """Collect every measurable numeric comparison within ``trace``."""
     comparisons: list[Comparison] = []
     if trace.kind == "operator":
-        name = (trace.operator or "").lower()
-        values = [child.result for child in trace.children]
-        if name in _MARGIN and all(_is_number(value) for value in values):
+        if trace.margin is not None:
             comparisons.append(
                 Comparison(
-                    slack=float(_MARGIN[name](*values)),
+                    slack=trace.margin,
                     holds=bool(trace.result),
                     description=_describe(trace),
                 )
