@@ -67,6 +67,35 @@ def test_type_mismatch_reports_rule_name_not_traceback(tmp_path):
     assert "Traceback" not in result.stderr
 
 
+CONTRADICTORY_THRESHOLDS = """
+version: 3.0.0
+thresholds:
+  - name: Impossible coverage
+    fail_code: IMPOSSIBLE
+    rule: ["and", ["greater_than", ":coverage/mean_depth", 30], ["less_than", ":coverage/mean_depth", 10]]
+"""
+
+
+def test_lint_flags_a_contradictory_rule_without_data(tmp_path):
+    thresholds = _write(tmp_path, "t.yml", CONTRADICTORY_THRESHOLDS)
+    result = CliRunner().invoke(cli, ["-t", thresholds, "--lint"])
+    assert result.exit_code == 1
+    assert "Impossible coverage" in result.output
+
+
+def test_lint_passes_clean_thresholds(tmp_path):
+    thresholds = _write(tmp_path, "t.yml", THRESHOLDS)
+    result = CliRunner().invoke(cli, ["-t", thresholds, "--lint"])
+    assert result.exit_code == 0
+    assert "No contradictions" in result.output
+
+
+def test_lint_requires_thresholds():
+    result = CliRunner().invoke(cli, ["--lint"])
+    assert result.exit_code == 1
+    assert "--thresholds" in result.stderr
+
+
 def test_json_output_includes_machine_readable_explain(tmp_path):
     thresholds = _write(tmp_path, "t.yml", THRESHOLDS)
     data = _write(tmp_path, "d.yml", "coverage:\n  mean_depth: 18.6\n")

@@ -150,6 +150,9 @@ thresholds:
 - `-M`, `--margin`: For every numeric comparison, print how far the metric could
   move before the comparison flips — the _slack_ on a passing check, or how much
   it falls short on a failing one (see [Margins](#margins)).
+- `-l`, `--lint`: Statically check the thresholds file for rules that can never
+  behave as intended — without needing any data (see
+  [Linting your rules](#linting-your-rules)).
 - `-T`, `--test` <SUITE_FILE>: Run a suite of test cases against its thresholds
   file (see [Testing your rules](#testing-your-rules)).
 - `-m`, `--manual`: Print the full manual and exit.
@@ -243,6 +246,43 @@ the interesting signal is the tail near zero, not the mean:
 For a rule that is a single comparison the slack is exactly the verdict's
 distance to flipping; for a compound `and`/`or` rule it is reported per
 comparison, so aggregate those at the comparison level.
+
+## Linting your rules
+
+`--margin` and `--explain` reason about one sample. `--lint` reasons about the
+thresholds file _on its own_ — it needs no data at all. Because every rule is an
+s-expression, a tree the tool can inspect directly, some mistakes are decidable
+before a single metric is seen: a rule that can never pass would silently fail
+every sample, and the bare `PASS`/`FAIL` output would never reveal why.
+
+```console
+$ auto-qc --thresholds thresholds.yml --lint
+✗ error Impossible coverage (IMPOSSIBLE)
+    :coverage/mean_depth cannot be both > 30 and < 10.
+✗ error Reversed range (REVERSED)
+    :quality/q30 between 90 and 50 is an empty range — no value satisfies it.
+! warning Always true typo (TYPO)
+    rule always passes regardless of the data.
+
+2 error(s), 1 warning(s)
+```
+
+It catches three kinds of provable problem:
+
+- **Unsatisfiable conjunctions.** An `and` whose numeric bounds on a single
+  metric leave no value that satisfies them all (`> 30` and `< 10`) — the rule
+  fails every sample.
+- **Empty ranges.** A `between` whose bounds are reversed (`between 90 50`), or
+  a conflicting `equals`, that nothing can match.
+- **Constant rules.** A rule with no metric pointers, whose outcome is therefore
+  fixed regardless of the data — usually a typo that pins a gate open or shut.
+
+The analysis is deliberately **sound**: it only reports a contradiction it can
+prove, and stays silent on anything it cannot reason about (`or` / `not`
+branches, arithmetic feeding a comparison), so a clean lint is never a guess. It
+exits `1` when any error-level finding is present and `0` otherwise, so it drops
+into CI as a pre-flight check on the rules before they are ever run against
+data.
 
 ## Python API
 
