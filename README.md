@@ -147,6 +147,9 @@ thresholds:
 - `-e`, `--explain`: Print a tree explaining how every rule was evaluated, with
   each metric pointer resolved to its value and the passing/failing branches
   marked.
+- `-M`, `--margin`: For every numeric comparison, print how far the metric could
+  move before the comparison flips — the _slack_ on a passing check, or how much
+  it falls short on a failing one (see [Margins](#margins)).
 - `-T`, `--test` <SUITE_FILE>: Run a suite of test cases against its thresholds
   file (see [Testing your rules](#testing-your-rules)).
 - `-m`, `--manual`: Print the full manual and exit.
@@ -191,6 +194,31 @@ without re-running the tool:
   ]
 }
 ```
+
+## Margins
+
+`PASS`/`FAIL` tells you _whether_ a sample cleared the rules; `--margin` tells
+you _how robustly_. For every ordered numeric comparison it reports the
+**slack** — the distance the metric could move before that comparison flips:
+
+```console
+$ auto-qc --data sample.yml --thresholds thresholds.yml --margin
+PASS Contamination too high (CONTAMINATION)
+    ✓ :contamination/percent_human=0.4 less_than 1 → slack 0.6 ← tightest
+
+FAIL Coverage below protocol threshold (LOW_COVERAGE)
+    ✗ :coverage/mean_depth=12.4 greater_than 15 → short by 2.6 ← tightest
+    ✗ :coverage/mean_depth=12.4 greater_than 30 → short by 17.6
+```
+
+A sample that clears a coverage cutoff by `0.1` is passing fragilely; one that
+clears it by `30` is passing comfortably — a difference the bare `PASS` hides
+but that matters when you are deciding whether to trust a whole batch. Within
+each rule the comparison closest to flipping is marked `← tightest`. Only the
+ordered comparisons (`greater_than`, `greater_equal_than`, `less_than`,
+`less_equal_than`, `between`) have a continuous margin; equality, string and
+membership tests are discrete and are skipped. Like `--explain`, `--margin`
+still exits `0` on pass and `1` on fail, so it slots into the same pipeline.
 
 ## Python API
 

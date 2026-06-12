@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file. This
 project adheres to [Semantic Versioning](http://semver.org/).
 
+## Unreleased
+
+### Added
+
+- A `--margin` / `-M` flag that reports, for every ordered numeric comparison in
+  a rule, how far the metric could move before the comparison flips — the slack
+  on a passing check or the shortfall on a failing one — and marks the tightest
+  comparison in each rule. This surfaces _how robustly_ a sample passed, which a
+  bare `PASS`/`FAIL` hides. Equality, string and membership tests are discrete
+  and have no margin, so they are skipped.
+
 ## 3.0.0 - 2026-06-01
 
 This is a major release that ports auto-qc to Python 3, modernises the packaging

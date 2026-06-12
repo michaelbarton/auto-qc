@@ -31,6 +31,11 @@ the check.
 - `-j`, `--json-output` — Print a detailed JSON report instead of PASS/FAIL.
   Each rule includes an `explain` tree describing how it was evaluated.
 - `-e`, `--explain` — Print a tree explaining how every rule was evaluated.
+- `-M`, `--margin` — For every numeric comparison, print how far the metric
+  could move before it flips: the slack on a passing check, or how much a
+  failing one falls short. Only the ordered comparisons (`greater_than`,
+  `less_than`, `between`, ...) have a margin; equality and string tests are
+  skipped.
 - `-T`, `--test` <SUITE_FILE> — Run a suite of test cases against its thresholds
   file.
 - `-m`, `--manual` — Print this manual and exit.

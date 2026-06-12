@@ -10,6 +10,7 @@ import auto_qc
 import auto_qc.exception
 from auto_qc import core, runner
 from auto_qc import explain as explain_view
+from auto_qc import margin as margin_view
 from auto_qc.evaluate import qc
 
 
@@ -50,6 +51,13 @@ def _load_document(path: str) -> typing.Any:
     default=False,
 )
 @click.option(
+    "--margin",
+    "-M",
+    help="Show how far each numeric comparison is from flipping its result.",
+    is_flag=True,
+    default=False,
+)
+@click.option(
     "--test",
     "-T",
     "test_suite",
@@ -58,7 +66,13 @@ def _load_document(path: str) -> typing.Any:
 )
 @click.option("--manual", "-m", help="Display the manual for auto-qc.", is_flag=True, default=False)
 def cli(
-    data: str, thresholds: str, json_output: bool, explain: bool, test_suite: str, manual: bool
+    data: str,
+    thresholds: str,
+    json_output: bool,
+    explain: bool,
+    margin: bool,
+    test_suite: str,
+    manual: bool,
 ) -> None:
 
     stdout = console.Console(width=100)
@@ -97,11 +111,13 @@ def cli(
         evaluation = qc.evaluate(state)
         if explain:
             explain_view.render(state, stdout)
+        if margin:
+            margin_view.render(state, stdout)
     except auto_qc.exception.AutoQCError as err:
         stderr.print(f"[red]Errors[/red]:\n{err}")
         sys.exit(1)
 
-    if not explain:
+    if not explain and not margin:
         print(evaluation.to_evaluation_string(json_output))
 
     sys.exit(0 if evaluation.is_pass else 1)
