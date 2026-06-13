@@ -25,7 +25,10 @@ def _load_yaml(path: str) -> typing.Any:
     with open(path) as handle:
         try:
             return yaml.safe_load(handle)
-        except yaml.YAMLError as err:
+        # Beyond YAMLError, PyYAML's tag constructors (!!int, !!timestamp, ...)
+        # raise bare ValueError/OverflowError/IndexError on values they cannot
+        # convert, and its parser recurses on nesting depth.
+        except (yaml.YAMLError, ValueError, OverflowError, IndexError, RecursionError) as err:
             raise exception.AutoQCError(f"Could not parse '{path}' as YAML/JSON:\n{err}") from err
 
 

@@ -26,7 +26,10 @@ def _load_document(path: str) -> typing.Any:
             return yaml.safe_load(sys.stdin.read())
         with open(path) as handle:
             return yaml.safe_load(handle)
-    except yaml.YAMLError as err:
+    # Beyond YAMLError, PyYAML's tag constructors (!!int, !!timestamp, ...)
+    # raise bare ValueError/OverflowError/IndexError on values they cannot
+    # convert, and its parser recurses on nesting depth.
+    except (yaml.YAMLError, ValueError, OverflowError, IndexError, RecursionError) as err:
         source = "stdin" if path == "-" else f"'{path}'"
         raise auto_qc.exception.AutoQCError(
             f"Could not parse {source} as YAML/JSON:\n{err}"
@@ -145,6 +148,9 @@ def cli(
             explain_view.render(state, stdout)
         if margin:
             margin_view.render(state, stdout)
+    except RecursionError:
+        stderr.print("[red]Errors[/red]:\nThe documents are nested too deeply to evaluate.")
+        sys.exit(1)
     except auto_qc.exception.AutoQCError as err:
         stderr.print(f"[red]Errors[/red]:\n{err}")
         sys.exit(1)

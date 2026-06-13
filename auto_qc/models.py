@@ -101,4 +101,7 @@ class AutoQCEvaluation:
             },
             indent=4,
             sort_keys=True,
+            # YAML parses unquoted dates/times into datetime objects; render
+            # any non-JSON value as its string form rather than crashing.
+            default=str,
         )
