@@ -137,6 +137,10 @@ def _apply(op_name: str, op: Operator, args: list[typing.Any]) -> typing.Any:
         return op.func(*args)
     except ZeroDivisionError:
         raise exception.EvaluationError(f"Operator '{op_name.lower()}' divided by zero.") from None
+    except re.error as err:
+        raise exception.EvaluationError(
+            f"Operator '{op_name.lower()}' was given an invalid regular expression: {err}."
+        ) from None
     except (TypeError, AttributeError):
         raise exception.EvaluationError(_type_message(op_name, op, args)) from None
 

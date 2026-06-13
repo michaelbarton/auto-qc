@@ -16,6 +16,19 @@ from rich.console import Console
 from auto_qc import core, exception, models
 
 
+def _load_yaml(path: str) -> typing.Any:
+    """Parse the YAML document at ``path``.
+
+    Raises:
+        AutoQCError: If the file is not valid YAML.
+    """
+    with open(path) as handle:
+        try:
+            return yaml.safe_load(handle)
+        except yaml.YAMLError as err:
+            raise exception.AutoQCError(f"Could not parse '{path}' as YAML/JSON:\n{err}") from err
+
+
 def _format_outcome(is_pass: bool, fail_codes: list[str]) -> str:
     """Render an outcome the same way a case author would write it."""
     if is_pass:
@@ -40,7 +53,7 @@ def _check_case(case: models.TestCase, thresholds: dict[str, typing.Any]) -> str
     # The case expects a failure.
     if evaluation.is_pass:
         return f"expected {_format_outcome(False, case.codes or [])}, got PASS"
-    if case.codes is not None and sorted(case.codes) != evaluation.fail_codes:
+    if case.codes is not None and sorted(set(case.codes)) != evaluation.fail_codes:
         return f"expected {_format_outcome(False, case.codes)}, got {actual}"
     return None
 
@@ -52,19 +65,25 @@ def run_file(path: str, console: Console) -> bool:
     file, so a suite can sit next to the rules it tests.
 
     Raises:
-        AutoQCError: If the suite file itself is invalid.
+        AutoQCError: If the suite file itself is invalid, or the thresholds
+            file it references cannot be read or parsed.
     """
     base_dir = os.path.dirname(os.path.abspath(path))
-    with open(path) as handle:
-        suite_doc = yaml.safe_load(handle)
+    suite_doc = _load_yaml(path)
 
     try:
         suite = models.TestSuite(**suite_doc)
     except (pydantic.ValidationError, TypeError) as err:
         raise exception.AutoQCError(str(err)) from err
 
-    with open(os.path.join(base_dir, suite.thresholds)) as handle:
-        thresholds = yaml.safe_load(handle)
+    thresholds_path = os.path.join(base_dir, suite.thresholds)
+    try:
+        thresholds = _load_yaml(thresholds_path)
+    except OSError as err:
+        raise exception.AutoQCError(
+            f"Could not read thresholds file '{suite.thresholds}' "
+            f"referenced by the test suite: {err}"
+        ) from err
 
     console.print(
         f"Testing [cyan]{suite.thresholds}[/cyan] against [bold]{len(suite.cases)}[/bold] cases\n"

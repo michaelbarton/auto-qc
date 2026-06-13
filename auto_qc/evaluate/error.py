@@ -1,5 +1,7 @@
 import difflib
 import itertools
+import re
+import string
 import typing
 
 from auto_qc import exception, models, node, variable
@@ -111,6 +113,51 @@ def check_arity(state: models.AutoQC) -> None:
     errors: list[str] = []
     for threshold in state.thresholds:
         _check_node_arity(threshold.rule, errors)
+
+    if errors:
+        raise exception.AutoQCError("\n".join(errors))
+
+
+def _check_message(
+    rule_name: str, label: str, message: str, available: set[str], errors: list[str]
+) -> None:
+    """Validate one message template against the variables its rule provides."""
+    try:
+        placeholders = [
+            field for _, field, _, _ in string.Formatter().parse(message) if field is not None
+        ]
+    except ValueError as err:
+        errors.append(f"Rule '{rule_name}': {label} {message!r} is not a valid template: {err}.")
+        return
+
+    for field in placeholders:
+        # ``{x.attr}`` / ``{x[0]}`` resolve attribute or index access on the
+        # variable named before the first ``.`` or ``[``.
+        name = re.split(r"[.\[]", field)[0]
+        if not name:
+            errors.append(
+                f"Rule '{rule_name}': {label} uses a positional placeholder '{{}}'; "
+                f"name a variable from the rule instead, e.g. '{{metric/path}}'."
+            )
+        elif name not in available:
+            errors.append(
+                f"Rule '{rule_name}': {label} references '{{{field}}}' but the rule "
+                f"has no variable '{name}'.{_suggest(name, available)}"
+            )
+
+
+def check_messages(state: models.AutoQC) -> None:
+    """
+    Checks that every ``pass_msg``/``fail_msg`` placeholder names a variable
+    used in its rule (without the leading ``:``), so a typo is reported when
+    the thresholds are read rather than crashing when the message is rendered.
+    """
+    errors: list[str] = []
+    for threshold in state.thresholds:
+        available = {name[1:] for name in variable.get_variable_names(threshold.rule)}
+        for label, message in (("pass_msg", threshold.pass_msg), ("fail_msg", threshold.fail_msg)):
+            if message is not None:
+                _check_message(threshold.name, label, message, available, errors)
 
     if errors:
         raise exception.AutoQCError("\n".join(errors))

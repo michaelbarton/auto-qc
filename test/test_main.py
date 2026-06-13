@@ -106,3 +106,12 @@ def test_json_output_includes_machine_readable_explain(tmp_path):
     assert explain["operator"] == "greater_than"
     assert explain["result"] is False
     assert {"variable": ":coverage/mean_depth", "value": 18.6} in explain["args"]
+
+
+def test_malformed_yaml_reports_cleanly(tmp_path):
+    thresholds = _write(tmp_path, "t.yml", THRESHOLDS)
+    data = _write(tmp_path, "d.yml", "coverage: {mean_depth: [\n")
+    result = CliRunner().invoke(cli, ["-t", thresholds, "-d", data])
+    assert result.exit_code == 1
+    assert "Could not parse" in result.stderr
+    assert "Traceback" not in result.stderr

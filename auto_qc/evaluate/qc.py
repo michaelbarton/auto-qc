@@ -30,10 +30,22 @@ def create_variable_dict(
 def create_qc_message(
     is_pass: bool, input_node: models.ThresholdNode, variables: dict[str, typing.Any]
 ) -> str:
+    """Render the rule's pass or fail message with its variables filled in.
+
+    Raises:
+        AutoQCError: If the message cannot be rendered — unknown placeholder
+            names are caught when the thresholds are read, but a format spec
+            can still fail against the resolved value (e.g. ``{x:.2f}`` when
+            ``x`` is text).
+    """
     msg = input_node.pass_msg if is_pass else input_node.fail_msg
     if msg is None:
         return ""
-    return msg.format(**variables)
+    try:
+        return msg.format(**variables)
+    except (KeyError, IndexError, ValueError, TypeError, AttributeError) as err:
+        label = "pass_msg" if is_pass else "fail_msg"
+        raise AutoQCError(f"could not render {label} {msg!r}: {err!r}") from err
 
 
 def build_qc_node(
@@ -47,11 +59,11 @@ def build_qc_node(
     """
     try:
         trace = node.evaluate(input_node.rule, analysis)
+        is_pass = bool(trace.result)
+        variables = create_variable_dict(input_node, analysis)
+        message = create_qc_message(is_pass, input_node, variables)
     except AutoQCError as err:
         raise AutoQCError(f"Rule '{input_node.name}' ({input_node.fail_code}): {err}") from err
-
-    is_pass = bool(trace.result)
-    variables = create_variable_dict(input_node, analysis)
 
     return {
         "variables": variables,
@@ -59,6 +71,6 @@ def build_qc_node(
         "pass": is_pass,
         "fail_code": input_node.fail_code,
         "tags": input_node.tags or [],
-        "message": create_qc_message(is_pass, input_node, variables),
+        "message": message,
         "explain": trace.to_dict(),
     }

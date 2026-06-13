@@ -16,11 +16,21 @@ from auto_qc.evaluate import qc
 
 
 def _load_document(path: str) -> typing.Any:
-    """Parse a YAML/JSON document from a path, or from stdin when ``path`` is ``-``."""
-    if path == "-":
-        return yaml.safe_load(sys.stdin.read())
-    with open(path) as handle:
-        return yaml.safe_load(handle)
+    """Parse a YAML/JSON document from a path, or from stdin when ``path`` is ``-``.
+
+    Raises:
+        AutoQCError: If the document is not valid YAML/JSON.
+    """
+    try:
+        if path == "-":
+            return yaml.safe_load(sys.stdin.read())
+        with open(path) as handle:
+            return yaml.safe_load(handle)
+    except yaml.YAMLError as err:
+        source = "stdin" if path == "-" else f"'{path}'"
+        raise auto_qc.exception.AutoQCError(
+            f"Could not parse {source} as YAML/JSON:\n{err}"
+        ) from err
 
 
 @click.command()
@@ -88,8 +98,8 @@ def cli(
     stderr = console.Console(width=100, stderr=True)
 
     if manual:
-        with resources.path(auto_qc.__name__, "MANUAL.md") as manual_path:
-            stdout.print(markdown.Markdown(manual_path.read_text()))
+        manual_text = resources.files(auto_qc).joinpath("MANUAL.md").read_text()
+        stdout.print(markdown.Markdown(manual_text))
         sys.exit(0)
 
     if test_suite:

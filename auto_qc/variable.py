@@ -29,34 +29,10 @@ def is_variable_path_valid(data: dict[str, typing.Any], path: str) -> bool:
 def resolve(data: dict[str, typing.Any], path: str) -> typing.Any:
     """Return the raw value at ``path``, or ``None`` if any key is missing.
 
-    Unlike :func:`get_variable_value`, lists are returned as-is rather than
-    wrapped in a ``list`` s-expression, so the engine can use a referenced list
-    directly (e.g. as the right-hand side of ``is_in``).
+    Lists are returned as-is, so the engine can use a referenced list directly
+    (e.g. as the right-hand side of ``is_in``).
     """
     return functional.get_in(data, path[1:].split("/"))
-
-
-def get_variable_value(data: dict[str, typing.Any], path: str) -> typing.Any:
-    """Get variable's value by traversing its path into the data file.
-
-    Args:
-        data: Source data to fetch value from.
-        path: Path to value.
-
-    Returns:
-        The value of the variable pointed to by the path.
-
-    Notes:
-        If the value is a list, the `list` string is appended to the start of the list. This is necessary because
-        lists are treated as SEXPs where the first node in each list is an operator.
-
-    """
-    drop_colon = path[1:]
-    path_array = drop_colon.split("/")
-    var_value = functional.get_in(data, path_array)
-    if isinstance(var_value, list):
-        return ["list", *var_value]
-    return var_value
 
 
 def get_variable_names(qc_node: list[typing.Any]) -> list[str]:
