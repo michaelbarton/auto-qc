@@ -97,3 +97,89 @@ def test_type_mismatch_surfaces_as_autoqc_error_with_rule_name():
     }
     with pytest.raises(exception.AutoQCError, match="Coverage too low"):
         core.run(thresholds, {"a": "not a number"})
+
+
+def _create_auto_qc_with_messages(rule, **messages) -> models.AutoQC:
+    return models.AutoQC(
+        version=version.__version__,
+        thresholds=[{"name": "example_test", "fail_code": "ERR_1", "rule": rule, **messages}],
+        data={},
+    )
+
+
+def test_check_messages_accepts_placeholders_from_the_rule():
+    auto_qc_eval = _create_auto_qc_with_messages(
+        ["greater_than", ":coverage/mean_depth", 30],
+        pass_msg="depth was {coverage/mean_depth:.1f}",
+        fail_msg="depth was only {coverage/mean_depth}",
+    )
+    error.check_messages(auto_qc_eval)  # Should not raise.
+
+
+def test_check_messages_flags_unknown_placeholder_with_suggestion():
+    auto_qc_eval = _create_auto_qc_with_messages(
+        ["greater_than", ":coverage/mean_depth", 30],
+        fail_msg="depth was only {coverage/men_depth}",
+    )
+    with pytest.raises(exception.AutoQCError, match=r"Did you mean 'coverage/mean_depth'\?"):
+        error.check_messages(auto_qc_eval)
+
+
+def test_check_messages_flags_unbalanced_braces():
+    auto_qc_eval = _create_auto_qc_with_messages(
+        ["greater_than", ":coverage/mean_depth", 30],
+        fail_msg="depth was only {coverage/mean_depth",
+    )
+    with pytest.raises(exception.AutoQCError, match="not a valid template"):
+        error.check_messages(auto_qc_eval)
+
+
+def test_check_messages_flags_positional_placeholder():
+    auto_qc_eval = _create_auto_qc_with_messages(
+        ["greater_than", ":coverage/mean_depth", 30],
+        fail_msg="depth was only {}",
+    )
+    with pytest.raises(exception.AutoQCError, match="positional placeholder"):
+        error.check_messages(auto_qc_eval)
+
+
+def test_check_messages_allows_literal_braces():
+    auto_qc_eval = _create_auto_qc_with_messages(
+        ["greater_than", ":coverage/mean_depth", 30],
+        fail_msg="literal {{braces}} are fine",
+    )
+    error.check_messages(auto_qc_eval)  # Should not raise.
+
+
+def test_message_typo_is_reported_when_thresholds_are_read():
+    """A bad placeholder fails at build time, not as a KeyError mid-evaluation."""
+    thresholds = {
+        "version": version.__version__,
+        "thresholds": [
+            {
+                "name": "Coverage too low",
+                "fail_code": "LOW",
+                "rule": ["greater_than", ":a", 3],
+                "fail_msg": "value was {wrong_name}",
+            }
+        ],
+    }
+    with pytest.raises(exception.AutoQCError, match="wrong_name"):
+        core.run(thresholds, {"a": 5})
+
+
+def test_bad_format_spec_surfaces_as_autoqc_error_with_rule_name():
+    """A format spec that fails against the resolved value reports cleanly."""
+    thresholds = {
+        "version": version.__version__,
+        "thresholds": [
+            {
+                "name": "Sample name",
+                "fail_code": "NAME",
+                "rule": ["equals", ":a", "x"],
+                "fail_msg": "name was {a:.2f}",
+            }
+        ],
+    }
+    with pytest.raises(exception.AutoQCError, match="Sample name"):
+        core.run(thresholds, {"a": "not x"})

@@ -48,7 +48,7 @@ Scenario Outline: Incompatible threshold file version number
   And the standard error should contain:
     """
     Incompatible threshold file syntax: <version>.
-    Please update the syntax to version >= 3.0.0.
+    This release of auto-qc (3.0.0) requires major version 3, e.g. '3.0.0'.
 
     """
 

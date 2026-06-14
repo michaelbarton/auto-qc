@@ -1,3 +1,4 @@
+import functools
 import typing
 
 import pydantic
@@ -5,7 +6,48 @@ import pydantic
 from auto_qc import exception, models
 from auto_qc.evaluate import error, qc
 
+_F = typing.TypeVar("_F", bound=typing.Callable[..., typing.Any])
 
+
+def _recursion_guarded(func: _F) -> _F:
+    """Convert a ``RecursionError`` into an :class:`AutoQCError`.
+
+    Rules and data are walked recursively, so a document nested absurdly
+    deeply — or one whose YAML aliases form a cycle (``&a [*a]``) — would
+    otherwise escape as a raw ``RecursionError``.
+    """
+
+    @functools.wraps(func)
+    def wrapper(*args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+        try:
+            return func(*args, **kwargs)
+        except RecursionError:
+            raise exception.AutoQCError(
+                "The documents are nested too deeply to evaluate. "
+                "Check for recursive YAML anchors/aliases."
+            ) from None
+
+    return typing.cast(_F, wrapper)
+
+
+def _validated(thresholds: typing.Any, data: dict[str, typing.Any]) -> models.AutoQC:
+    """Validate a parsed thresholds document, wrapping every failure mode.
+
+    Raises:
+        AutoQCError: If the document is not a mapping or fails validation.
+    """
+    if not isinstance(thresholds, dict):
+        raise exception.AutoQCError(
+            "The thresholds document must be a YAML/JSON mapping with 'version' "
+            f"and 'thresholds' keys, but it parsed as {type(thresholds).__name__}."
+        )
+    try:
+        return models.AutoQC.model_validate({**thresholds, "data": data})
+    except pydantic.ValidationError as err:
+        raise exception.AutoQCError(str(err)) from err
+
+
+@_recursion_guarded
 def build(thresholds: dict[str, typing.Any], data: dict[str, typing.Any]) -> models.AutoQC:
     """Validate the thresholds and data and return the checked ``AutoQC`` state.
 
@@ -21,17 +63,15 @@ def build(thresholds: dict[str, typing.Any], data: dict[str, typing.Any]) -> mod
             path, or use an unknown operator. Validation failures from pydantic
             are wrapped so that callers only ever need to catch ``AutoQCError``.
     """
-    try:
-        state = models.AutoQC(data=data, **thresholds)
-    except pydantic.ValidationError as err:
-        raise exception.AutoQCError(str(err)) from err
-
+    state = _validated(thresholds, data)
     error.check_node_paths(state)
     error.check_operators(state)
     error.check_arity(state)
+    error.check_messages(state)
     return state
 
 
+@_recursion_guarded
 def build_thresholds(thresholds: dict[str, typing.Any]) -> models.AutoQC:
     """Validate a thresholds document on its own, without a data document.
 
@@ -48,16 +88,14 @@ def build_thresholds(thresholds: dict[str, typing.Any]) -> models.AutoQC:
     Raises:
         AutoQCError: If the document is invalid or uses an unknown operator.
     """
-    try:
-        state = models.AutoQC(data={}, **thresholds)
-    except pydantic.ValidationError as err:
-        raise exception.AutoQCError(str(err)) from err
-
+    state = _validated(thresholds, {})
     error.check_operators(state)
     error.check_arity(state)
+    error.check_messages(state)
     return state
 
 
+@_recursion_guarded
 def run(thresholds: dict[str, typing.Any], data: dict[str, typing.Any]) -> models.AutoQCEvaluation:
     """Evaluate a set of thresholds against a data document.
 

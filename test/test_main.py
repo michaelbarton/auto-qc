@@ -1,5 +1,6 @@
 import json
 
+import pytest
 from click.testing import CliRunner
 
 import auto_qc
@@ -106,3 +107,50 @@ def test_json_output_includes_machine_readable_explain(tmp_path):
     assert explain["operator"] == "greater_than"
     assert explain["result"] is False
     assert {"variable": ":coverage/mean_depth", "value": 18.6} in explain["args"]
+
+
+def test_malformed_yaml_reports_cleanly(tmp_path):
+    thresholds = _write(tmp_path, "t.yml", THRESHOLDS)
+    data = _write(tmp_path, "d.yml", "coverage: {mean_depth: [\n")
+    result = CliRunner().invoke(cli, ["-t", thresholds, "-d", data])
+    assert result.exit_code == 1
+    assert "Could not parse" in result.stderr
+    assert "Traceback" not in result.stderr
+
+
+def test_json_output_handles_yaml_dates(tmp_path):
+    thresholds = _write(
+        tmp_path,
+        "t.yml",
+        """
+version: 3.0.0
+thresholds:
+  - name: run date check
+    fail_code: DATE
+    rule: ["equals", ":run_date", "2024-01-01"]
+""",
+    )
+    data = _write(tmp_path, "d.yml", "run_date: 2024-01-01\n")
+    result = CliRunner().invoke(cli, ["-t", thresholds, "-d", data, "--json-output"])
+    assert result.exit_code == 1
+    report = json.loads(result.output)
+    assert report["qc"][0]["explain"]["args"][0]["value"] == "2024-01-01"
+
+
+def test_non_mapping_thresholds_document_reports_cleanly(tmp_path):
+    thresholds = _write(tmp_path, "t.yml", "just a string\n")
+    data = _write(tmp_path, "d.yml", "coverage: {mean_depth: 40}\n")
+    result = CliRunner().invoke(cli, ["-t", thresholds, "-d", data])
+    assert result.exit_code == 1
+    assert "must be a YAML/JSON mapping" in result.stderr
+    assert "Traceback" not in result.stderr
+
+
+@pytest.mark.parametrize("data_body", ["coverage: !!int not-a-number\n", "!!int\n"])
+def test_yaml_tag_constructor_errors_report_cleanly(tmp_path, data_body):
+    thresholds = _write(tmp_path, "t.yml", THRESHOLDS)
+    data = _write(tmp_path, "d.yml", data_body)
+    result = CliRunner().invoke(cli, ["-t", thresholds, "-d", data])
+    assert result.exit_code == 1
+    assert "Could not parse" in result.stderr
+    assert "Traceback" not in result.stderr

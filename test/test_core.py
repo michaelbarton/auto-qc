@@ -52,3 +52,20 @@ def test_invalid_document_raises_autoqc_error_not_pydantic():
     }
     with pytest.raises(AutoQCError):
         run(thresholds, {"depth": 5})
+
+
+def test_non_mapping_thresholds_document_raises_autoqc_error():
+    with pytest.raises(AutoQCError, match="must be a YAML/JSON mapping"):
+        run([1, 2, 3], {"a": 1})
+
+
+def test_recursive_rule_raises_autoqc_error():
+    """A rule that contains itself (recursive YAML alias) must not crash."""
+    rule = ["and", True]
+    rule.append(rule)
+    thresholds = {
+        "version": auto_qc.__version__,
+        "thresholds": [{"name": "recursive", "fail_code": "REC", "rule": rule}],
+    }
+    with pytest.raises(AutoQCError, match="nested too deeply"):
+        run(thresholds, {"a": 1})

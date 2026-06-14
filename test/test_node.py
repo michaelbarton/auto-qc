@@ -130,3 +130,9 @@ def test_string_comparison_has_no_margin():
     trace = node.evaluate(["greater_than", ":id", "SRX-1"], {"id": "SRX-2"})
     assert trace.result is True
     assert trace.margin is None
+
+
+def test_invalid_regex_reports_cleanly():
+    """A malformed pattern is a rule-author error, not a crash."""
+    with pytest.raises(exception.EvaluationError, match="invalid regular expression"):
+        _eval(["matches", "sample_a", "["])

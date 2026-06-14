@@ -16,11 +16,24 @@ from auto_qc.evaluate import qc
 
 
 def _load_document(path: str) -> typing.Any:
-    """Parse a YAML/JSON document from a path, or from stdin when ``path`` is ``-``."""
-    if path == "-":
-        return yaml.safe_load(sys.stdin.read())
-    with open(path) as handle:
-        return yaml.safe_load(handle)
+    """Parse a YAML/JSON document from a path, or from stdin when ``path`` is ``-``.
+
+    Raises:
+        AutoQCError: If the document is not valid YAML/JSON.
+    """
+    try:
+        if path == "-":
+            return yaml.safe_load(sys.stdin.read())
+        with open(path) as handle:
+            return yaml.safe_load(handle)
+    # Beyond YAMLError, PyYAML's tag constructors (!!int, !!timestamp, ...)
+    # raise bare ValueError/OverflowError/IndexError on values they cannot
+    # convert, and its parser recurses on nesting depth.
+    except (yaml.YAMLError, ValueError, OverflowError, IndexError, RecursionError) as err:
+        source = "stdin" if path == "-" else f"'{path}'"
+        raise auto_qc.exception.AutoQCError(
+            f"Could not parse {source} as YAML/JSON:\n{err}"
+        ) from err
 
 
 @click.command()
@@ -88,8 +101,8 @@ def cli(
     stderr = console.Console(width=100, stderr=True)
 
     if manual:
-        with resources.path(auto_qc.__name__, "MANUAL.md") as manual_path:
-            stdout.print(markdown.Markdown(manual_path.read_text()))
+        manual_text = resources.files(auto_qc).joinpath("MANUAL.md").read_text()
+        stdout.print(markdown.Markdown(manual_text))
         sys.exit(0)
 
     if test_suite:
@@ -135,6 +148,9 @@ def cli(
             explain_view.render(state, stdout)
         if margin:
             margin_view.render(state, stdout)
+    except RecursionError:
+        stderr.print("[red]Errors[/red]:\nThe documents are nested too deeply to evaluate.")
+        sys.exit(1)
     except auto_qc.exception.AutoQCError as err:
         stderr.print(f"[red]Errors[/red]:\n{err}")
         sys.exit(1)

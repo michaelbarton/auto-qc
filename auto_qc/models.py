@@ -38,7 +38,7 @@ class AutoQC(pydantic.BaseModel):
                 textwrap.dedent(
                     f"""
             Incompatible threshold file syntax: {ver}.
-            Please update the syntax to version >= {version.__version__}.
+            This release of auto-qc ({version.__version__}) requires major version {version.major_version(version.__version__)}, e.g. '{version.__version__}'.
                     """
                 )
             )
@@ -101,4 +101,7 @@ class AutoQCEvaluation:
             },
             indent=4,
             sort_keys=True,
+            # YAML parses unquoted dates/times into datetime objects; render
+            # any non-JSON value as its string form rather than crashing.
+            default=str,
         )

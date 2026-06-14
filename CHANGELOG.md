@@ -5,6 +5,25 @@ project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Unreleased
 
+### Fixed
+
+- Invalid user input now always reports a clean error instead of a Python
+  traceback. This covers: an invalid regular expression passed to `matches`; an
+  unknown placeholder in a `pass_msg` / `fail_msg` (now caught when the
+  thresholds are read, with a did-you-mean suggestion); malformed YAML/JSON in
+  any input document, including values PyYAML's tag constructors (`!!int`,
+  `!!timestamp`) cannot convert; a `--test` suite that references a missing or
+  malformed thresholds file; a thresholds document that parses to something
+  other than a mapping; and documents nested too deeply or with recursive YAML
+  aliases.
+- `--json-output` no longer crashes when a metric is an unquoted YAML date or
+  time (parsed by PyYAML into a `datetime` object); such values are serialised
+  as strings.
+- `--test` now treats duplicate expected `codes` as a single code, so a correct
+  outcome cannot be reported as a failure.
+- Corrected the version-mismatch error, which told authors of a higher-major
+  threshold file to "update" to an older syntax.
+
 ### Added
 
 - A `--margin` / `-M` flag that reports, for every ordered numeric comparison in
